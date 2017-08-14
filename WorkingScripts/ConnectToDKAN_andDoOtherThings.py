@@ -9,7 +9,6 @@ user = os.environ.get('DCG_user')
 password = os.environ.get('DCG_pw')
 URI= os.environ.get('URI')
 
-# Change after testBranch and designed to testing Git merging
 
 #uri = os.environ.get('URI', False)
 #uri = 'https://test.cadepttech.nucivicdata.com/node/1826/api'
