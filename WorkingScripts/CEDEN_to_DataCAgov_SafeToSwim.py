@@ -55,7 +55,7 @@ NODE = int(argList.node)
 #############################################
 '''
 ########################			!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!		#####################
-table= 'WQDMart_MV'; fileName = 'TempOut'; StartYear = 1980; EndYear = 2015; NODE = 1841
+table= 'WQDMart_MV'; fileName = 'CEDEN_SafeToSwimData'; StartYear = 2000; EndYear = 2017; NODE = 1841
 
 
 ########################			!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!		#####################
@@ -131,7 +131,7 @@ print("Finished data retrieval")
 ###################################################################################################
 #################################        Push data to data.ca.gov 		############################################
 ###################################################################################################
-print("Opening connecion to data.ca.gov")
+print("Opening connection to data.ca.gov")
 # Attach dataset data 
 try:
 	#Sign into the data.ca.gov website
@@ -146,7 +146,7 @@ try:
 	###################################################################################################################
 	# node # 1841 corresponds to "Sample Data... Not to be used for decision making" resource on the "Data Update Automation" dataset
 
-	print("Connection open and pusing data")
+	print("Connection open and pushing data")
 	r = api.attach_file_to_node(file = fileWritten, node_id=NODE, field = 'field_upload' )
 	print("Upload completed successfully")
 	# Good for inspecting features of dataset/resource.
