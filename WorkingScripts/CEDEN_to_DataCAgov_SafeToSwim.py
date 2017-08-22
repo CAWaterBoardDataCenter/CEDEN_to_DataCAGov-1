@@ -116,7 +116,7 @@ cursor.execute(sql)
 print("Starting data retrieval")
 #data = cursor.fetchall()
 
-fileWritten ='%s, %d-%d.csv' %(fileName, StartYear, EndYear)
+fileWritten ='%s_%d-%d.csv' %(fileName, StartYear, EndYear)
 columns = [desc[0] for desc in cursor.description]
 
 with open(fileWritten, 'w', newline='') as csvfile:
@@ -148,6 +148,7 @@ try:
 
 	print("Connection open and pushing data")
 	r = api.attach_file_to_node(file = fileWritten, node_id=NODE, field = 'field_upload' )
+	r.json()
 	print("Upload completed successfully")
 	# Good for inspecting features of dataset/resource.
 	#r = api.node('retrieve', node_id=NODE)
@@ -158,7 +159,8 @@ try:
 
 
 except:
-	Print("Try... try again")
+	print("Try... try again")
+	print(r.json())
 
 #os.remove(fileWritten)
 
