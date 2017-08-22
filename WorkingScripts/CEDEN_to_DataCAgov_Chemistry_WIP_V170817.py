@@ -32,7 +32,7 @@ PWD = os.environ.get('PWD')
 # python .\WorkingScripts\CEDEN_to_DataCAgov_Chemistry_WIP_V170817.py -f CEDEN_ChemistryData -t 2010 2017 -n 456
 
 
-# import argument parser. This will allow a user to specify mandatory options on the command line by using a flag ("-Flag") followed by a non-quoted text. See example above. 
+# import argument parser. This will allow a user to specify mandatory options on the command line by using a flag ("-Flag") followed by a non-quoted text. See example above.
 # Though the "-S" flag can be specified, it does not need to be and the default value will work. 
 # Change the table value on the command line for toxicity, Tissue, Benthic, or Habitat data. 
 # Use the "-t" flag to specify a time range in years (inclusive) of data to be returned. EX, "2016 2016" will return data between 01/01/2016 to 12/31/2016.
@@ -57,26 +57,11 @@ EndYear = int(argList.TimeSpan[1])
 NODE = int(argList.node)
 
 #############################################
-'''
-########################			!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!		#####################
-# when trouble shooting from the command line, use the commented out line below...
-# Node 456 is the "CEDEN Chemistry Data, 2005-2015" dataset
-table= 'WQDMart_MV'; fileName = 'Delete'; StartYear = 2010; EndYear = 2017; NODE = 456
-########################			!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!		#####################
-'''
-
-try:
-	cnxn = pyodbc.connect(Driver='SQL Server Native Client 11.0', Server=SERVER1, uid=UID, pwd=PWD)
-except:
-	print("Couldn't connect to %s. It is down or you might have had a typo. Check internet connection." % argList.instance)
-
-# a python cursor is a synonym to a recordset or resultset.
-cursor = cnxn.cursor()
 
 
-#######################################################################################
-#########################        SQL section to be modified for every new dataset		#############################
-#######################################################################################
+###########################################################################################################################
+#########################        SQL section to be modified for every new dataset		###########################
+###########################################################################################################################
 
 sql=("SELECT * FROM %s WHERE NOT "
 "(StationCode = 'LABQA' OR StationCode = 'LABQA_SWAMP' " \
@@ -106,6 +91,27 @@ sql=("SELECT * FROM %s WHERE NOT "
 #######################################################################################
 #########################        SQL section to be modified for every new dataset		#############################
 #######################################################################################
+
+
+'''
+########################			!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!		#####################
+# when trouble shooting from the command line, use the commented out line below...
+# Node 456 is the "CEDEN Chemistry Data, 2005-2015" dataset
+table= 'WQDMart_MV'; fileName = 'Delete'; StartYear = 2010; EndYear = 2017; NODE = 456
+########################			!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!		#####################
+'''
+
+
+
+
+try:
+	cnxn = pyodbc.connect(Driver='SQL Server Native Client 11.0', Server=SERVER1, uid=UID, pwd=PWD)
+except:
+	print("Couldn't connect to %s. It is down or you might have had a typo. Check internet connection." % argList.instance)
+
+# a python cursor is a synonym to a recordset or resultset.
+cursor = cnxn.cursor()
+
 
 
 ##################################################
