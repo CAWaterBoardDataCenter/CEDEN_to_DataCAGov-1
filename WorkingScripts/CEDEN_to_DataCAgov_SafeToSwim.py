@@ -12,6 +12,7 @@ import pyodbc, argparse
 import pandas as pd
 import numpy as np
 import os, csv
+from datetime import date
 import json
 from dkan.client import DatasetAPI
 
@@ -28,7 +29,7 @@ PWD = os.environ.get('PWD')
 # WQDMart_MV, ToxDmart_MV, TissueDMart_MV, BenthicDMart_MV, HabitatDMart_MV 
 
 # Example could be with all options specified
-# python .\WorkingScripts\CEDEN_to_DataCAgov_SafeToSwim.py -f CEDEN_SafeToSwimData -t 2000 2017 -n 1841
+# python C:\Users\AHill\Documents\PythonScripts\CEDEN_to_DataCAGov\WorkingScripts\CEDEN_to_DataCAgov_SafeToSwim.py -f CEDEN_SafeToSwimData -t 2001 -n 1841
 
 
 # import argument parser. This will allow a user to specify mandatory options on the command line by using a flag ("-Flag") followed by a non-quoted text. See example above. 
@@ -39,7 +40,10 @@ PWD = os.environ.get('PWD')
 parser = argparse.ArgumentParser(description='SQL Server object search. Case sensitive')
 parser.add_argument('-S', '--server', help='Instance you wish to connect to.', dest="instance", default=SERVER1)
 parser.add_argument('-T', '--table', help='Table options for this script include: WQDMart_MV, ToxDmart_MV, TissueDMart_MV, BenthicDMart_MV, HabitatDMart_MV', dest="table", default='WQDMart_MV')
-parser.add_argument('-t', '--TimeSpan', help='Range of years separated by a single space', dest="TimeSpan", nargs=2, default=("2016","2016"))
+parser.add_argument('-t', '--TimeSpan', help='Single Year for the start date.', dest="TimeSpan", default="2016")
+# original time bracketing replaced with only start time.
+#parser.add_argument('-t', '--TimeSpan', help='Range of years separated by a single space', dest="TimeSpan", nargs=2,
+#  default=("2016","2016"))
 parser.add_argument('-f', '--fileName', help='Name of output file. Time span as suffix will be automatically included ( if you enter "MyFile" the file name will become "MyFile_table_2016-2016.csv.gz"', dest="fileName",default="Output.csv")
 parser.add_argument('-n', '--node', help='The data.ca.gov Node you wish to update... Be very careful this will overwrite the existing data with no prompt!!!!!!!', dest="node", required=True)
 argList = parser.parse_args()
@@ -48,8 +52,10 @@ argList = parser.parse_args()
 Server1=argList.instance
 table=argList.table
 fileName = argList.fileName
-StartYear= int(argList.TimeSpan[0])
-EndYear = int(argList.TimeSpan[1])
+StartYear = int(argList.TimeSpan)
+EndYear = date.today().year
+#StartYear= int(argList.TimeSpan[0])
+#EndYear = int(argList.TimeSpan[1])
 NODE = int(argList.node)
 
 #############################################
