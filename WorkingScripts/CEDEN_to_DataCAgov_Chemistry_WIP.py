@@ -27,11 +27,12 @@ PWD = os.environ.get('PWD')
 # other table option can include
 # WQDMart_MV, ToxDmart_MV, TissueDMart_MV, BenthicDMart_MV, HabitatDMart_MV 
 
-# Example could be with all options specified
-# python .\WorkingScripts\CEDEN_to_DataCAgov_SafeToSwim_WIP_V170810.py -f CEDEN_SafeToSwim -t 2014 2017 -n 1841
+# Currently when pushing data to data.ca.gov time ranges from 2014-2017 work but 2010-2017 doesn't ... don't know
+# why....
+# python .\WorkingScripts\CEDEN_to_DataCAgov_Chemistry_WIP_V170817.py -f CEDEN_ChemistryData -t 2010 2017 -n 456
 
 
-# import argument parser. This will allow a user to specify mandatory options on the command line by using a flag ("-Flag") followed by a non-quoted text. See example above. 
+# import argument parser. This will allow a user to specify mandatory options on the command line by using a flag ("-Flag") followed by a non-quoted text. See example above.
 # Though the "-S" flag can be specified, it does not need to be and the default value will work. 
 # Change the table value on the command line for toxicity, Tissue, Benthic, or Habitat data. 
 # Use the "-t" flag to specify a time range in years (inclusive) of data to be returned. EX, "2016 2016" will return data between 01/01/2016 to 12/31/2016.
@@ -44,8 +45,11 @@ parser.add_argument('-f', '--fileName', help='Name of output file. Time span as 
 parser.add_argument('-n', '--node', help='The data.ca.gov Node you wish to update... Be very careful this will overwrite the existing data with no prompt!!!!!!!', dest="node", required=True)
 argList = parser.parse_args()
 
+if SERVER1:
+	print("importing Server")
+else:
+	SERVER1=argList.instance
 
-Server1=argList.instance
 table=argList.table
 fileName = argList.fileName
 StartYear= int(argList.TimeSpan[0])
@@ -53,30 +57,13 @@ EndYear = int(argList.TimeSpan[1])
 NODE = int(argList.node)
 
 #############################################
-'''
-########################			!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!		#####################
-table= 'WQDMart_MV'; fileName = 'TempOut'; StartYear = 2005; EndYear = 2015; NODE = 1841
 
 
-########################			!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!		#####################
-'''
+###########################################################################################################################
+#########################        SQL section to be modified for every new dataset		###########################
+###########################################################################################################################
 
-try:
-	cnxn = pyodbc.connect(Driver='SQL Server Native Client 11.0', Server=SERVER1, uid=UID, pwd=PWD)
-except:
-	print("Couldn't connect to %s. It is down or you might have had a typo. Check internet connection." % argList.instance)
-
-# a python cursor is a synonym to a recordset or resultset.
-cursor = cnxn.cursor()
-
-
-#######################################################################################
-#########################        SQL section to be modified for every new dataset		#############################
-#######################################################################################
-
-sql=("SELECT %s.Program, %s.ParentProject, %s.Project, %s.StationName, %s.TargetLatitude, %s.TargetLongitude, %s.StationCode, %s.SampleDate, %s.SampleTypeCode, %s.LabSampleID, %s.MatrixName, %s.Analyte, %s.Unit, %s.Result, " \
-"%s.MDL, %s.RL, %s.ResultQualCode, %s.QACode, %s.BatchVerification " \
-"FROM %s WHERE NOT " \
+sql=("SELECT * FROM %s WHERE NOT "
 "(StationCode = 'LABQA' OR StationCode = 'LABQA_SWAMP' " \
 "OR Result = '' OR TargetLatitude=-88 OR TargetLatitude='' " \
 "OR SampleTypeCode = 'LabBlank' " \
@@ -98,15 +85,33 @@ sql=("SELECT %s.Program, %s.ParentProject, %s.Project, %s.StationName, %s.Target
 "OR MatrixName ='Blankwater' " \
 "OR MatrixName ='labwater' " \
 "OR MatrixName ='blankmatrix') " \
-"AND " \
-"(Analyte = 'E. Coli' OR Analyte='Enterococcus' " \
-"OR Analyte = 'Coliform, Total' OR Analyte = 'Coliform, Fecal') " \
 "AND (CollectionReplicate = 1 AND ResultsReplicate = 1) " \
-"AND (SampleDate BETWEEN CONVERT(datetime, '%d-01-01') AND CONVERT(datetime, '%d-12-31'));") % (table,table,table,table,table,table,table,table,table,table,table,table,table,table,table,table,table,table,table, table, StartYear, EndYear)
+"AND (SampleDate BETWEEN CONVERT(datetime, '%d-01-01') AND CONVERT(datetime, '%d-12-31'));") % (table, StartYear, EndYear)
 
 #######################################################################################
 #########################        SQL section to be modified for every new dataset		#############################
 #######################################################################################
+
+
+'''
+########################			!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!		#####################
+# when trouble shooting from the command line, use the commented out line below...
+# Node 456 is the "CEDEN Chemistry Data, 2005-2015" dataset
+table= 'WQDMart_MV'; fileName = 'Delete'; StartYear = 2010; EndYear = 2017; NODE = 456
+########################			!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!		#####################
+'''
+
+
+
+
+try:
+	cnxn = pyodbc.connect(Driver='SQL Server Native Client 11.0', Server=SERVER1, uid=UID, pwd=PWD)
+except:
+	print("Couldn't connect to %s. It is down or you might have had a typo. Check internet connection." % SERVER1)
+
+# a python cursor is a synonym to a recordset or resultset.
+cursor = cnxn.cursor()
+
 
 
 ##################################################
@@ -116,27 +121,29 @@ cursor.execute(sql)
 print("Starting data retrieval")
 #data = cursor.fetchall()
 
-fileWritten ='%s_%s_%d-%d.csv' %(fileName, table, StartYear, EndYear)
+fileWritten ='%s_%d-%d.csv' %(fileName, StartYear, EndYear)
 columns = [desc[0] for desc in cursor.description]
 
-with open(fileWritten, 'w', newline='') as csvfile:
-	dw = csv.DictWriter(csvfile, fieldnames=columns)
-	dw.writeheader()
-	csv.writer(csvfile, csv.QUOTE_MINIMAL).writerows(cursor)
-
-
-print("Finished data retrieval")
+if os.path.isfile(fileWritten):
+	print("Importing written file %s" % fileWritten)
+else:
+	with open(fileWritten, 'w', newline='') as csvfile:
+		dw = csv.DictWriter(csvfile, fieldnames=columns)
+		dw.writeheader()
+		csv.writer(csvfile, csv.QUOTE_MINIMAL).writerows(cursor)
+	print("Finished data retrieval")
 
 
 ###################################################################################################
 #################################        Push data to data.ca.gov 		############################################
 ###################################################################################################
-print("Opening connecion to data.ca.gov")
+
 # Attach dataset data 
 try:
 	#Sign into the data.ca.gov website
+	print("Connecting to data.ca.gov")
 	api = DatasetAPI(URI, user, password )
-	
+	print("Connected")
 	# Attach file to node on data.ca.gov
 	
 	###################################################################################################################
@@ -144,9 +151,7 @@ try:
 	#####################		Be Very Careful here 	Make Sure you have the right Node value		###############################################
 	###################################################################################################################
 	###################################################################################################################
-	# node # 1841 corresponds to "Sample Data... Not to be used for decision making" resource on the "Data Update Automation" dataset
-
-	print("Connection open and pusing data")
+	print("Pushing data")
 	r = api.attach_file_to_node(file = fileWritten, node_id=NODE, field = 'field_upload' )
 	print("Upload completed successfully")
 	# Good for inspecting features of dataset/resource.
@@ -158,7 +163,7 @@ try:
 
 
 except:
-	Print("Try... try again")
+	print("Try... try again")
 
 #os.remove(fileWritten)
 
