@@ -2,20 +2,19 @@
 
 Purpose:
 
-Benthic Data 1994 - Present
-Tissue Data  1950 - Present
+
 
 '''
 
-import pyodbc, argparse
+import pyodbc
 #import pandas as pd
 #import numpy as np
-import os, csv, re
-import time
+import os, csv
+#import time
 #import json
 from dkan.client import DatasetAPI
-import shapefile as shp
-from shapely.geometry import Polygon, Point
+#import shapefile as shp
+#from shapely.geometry import Polygon, Point
 
 siteDictFile = "C:\\Users\\AHill\\Documents\\CEDEN_DataMart\\WQX_Stations.txt"
 #polygon_in = shp.Reader("C:\\Users\\AHill\\Documents\\CEDEN_DataMart\\Regional_Board_Boundaries\\CA_WA_RBs_WGS84.shp")
@@ -64,11 +63,11 @@ QA_Code_list = {"AWM": 1,"AY": 2,"BB": 2,"BBM": 2,"BCQ": 1,"BE": 2,"BH": 1,"BLM"
                 "VFO": 2,"VGB": 2,"VGBC": 3,"VGN": 3,"VH": 2,"VH25": 3,"VH8": 2,"VHB": 2,
                 "VIE": 2,"VIL": 3,"VILN": 3,"VILO": 2,"VIP": 3,"VIP5": 3,"VIPMDL2": 3,
                 "VIPMDL3": 3,"VIPRL": 3,"VIS": 3,"VIU": 3,"VJ": 2,"VJA": 2,"VLB": 2,"VLMQO": 2,
-                "VM": 2,"VNBC": 2,"VNC": 1,"VNMDL": 1,"VNTR": 1,"VPJM": 1,"VPMQO": 2,"VQAX": 1,
-                "VQCA": 3,"VQCP": 3,"VR": 5,"VRBS": 5,"VRBZ": 5,"VRDO": 5,"VRE": 1,"VREL": 1,
-                "VRGN": 5,"VRIL": 5,"VRIP": 5,"VRIU": 5,"VRJ": 5,"VRLB": 5,"VRLST": 5,"VRQ": 2,
-                "VRVQ": 5,"VS": 2,"VSC": 1,"VSCR": 2,"VSD3": 1,"VTAC": 1,"VTCI": 3,"VTCT": 3,
-                "VTNC": 2,"VTOQ": 3,"VTR": 5,"VTW": 3,"VVQ": 5,"WOQ": 3}
+                "VM": 2, "VNBC": 2,"VNC": 1,"VNMDL": 1,"VNTR": 1,"VPJM": 1,"VPMQO": 2,"VQAX": 1,
+                "VQCA": 3, "VQCP": 3,"VR": 5,"VRBS": 5,"VRBZ": 5,"VRDO": 5,"VRE": 1,"VREL": 1,
+                "VRGN": 5, "VRIL": 5,"VRIP": 5,"VRIU": 5,"VRJ": 5,"VRLB": 5,"VRLST": 5,"VRQ": 2,
+                "VRVQ": 5, "VS": 2,"VSC": 1,"VSCR": 2,"VSD3": 1,"VTAC": 1,"VTCI": 3,"VTCT": 3,
+                "VTNC": 2, "VTOQ": 3, "VTR": 5, "VTW": 3, "VVQ": 5, "WOQ": 3}
 
 BatchVerificationCode_list = {"NA": 4,"NR": 4,"VAC": 1,"VAC:VCN": 5,"VAC:VMD": 2,"VAC:VMD:VQI": 3,
                               "VAC:VQI": 3,"VAC:VR": 5,"VAF": 1,"VAF:VMD": 2,"VAF:VQI": 3,"VAP": 1,
@@ -118,7 +117,6 @@ Codes_Dict = {"QACode": QA_Code_list,
 tables = {"WQX_Stations": "DM_WQX_Stations_MV", "WaterChemistryData": "WQDMart_MV",
           "ToxicityData": "ToxDmart_MV", "TissueData": "TissueDMart_MV",
           "BenthicData": "BenthicDMart_MV", "HabitatData": "HabitatDMart_MV", }
-#tables = { "TissueData": "TissueDMart_MV", }
 
 siteLocations = {"StationCode": "", "StationName": "", }
 
@@ -136,7 +134,6 @@ def rename_Dict_Column(dictionary, oldName, Newname):
 
 def DictionaryFixer(Codes_Dict, filename ):
 	Codes_Dict_Alt = Codes_Dict.copy()
-	#
 	if filename == 'WQX_Stations':
 		################################## Delete #################
 		Codes_Dict_Alt.pop("Analyte")
@@ -147,21 +144,15 @@ def DictionaryFixer(Codes_Dict, filename ):
 		Codes_Dict_Alt.pop("BatchVerification")
 		Codes_Dict_Alt.pop("ResultQualCode")
 		Codes_Dict_Alt.pop("TargetLatitude")
-		#Codes_Dict_Alt.pop("Result")
 		Codes_Dict_Alt.pop("SampleTypeCode")
 		Codes_Dict_Alt.pop("SampleDate")
 		Codes_Dict_Alt.pop("ProgramName")
 		Codes_Dict_Alt.pop("CollectionReplicate")
-		#Codes_Dict_Alt.pop("ResultsReplicate")
 
 	if filename == 'BenthicData':
 		################# Rename #################
-		rename_Dict_Column(Codes_Dict_Alt, oldName = "SampleTypeCode", Newname = "SampleType")
+		rename_Dict_Column(Codes_Dict_Alt, oldName="SampleTypeCode", Newname="SampleType")
 		rename_Dict_Column(Codes_Dict_Alt, oldName="ResultQualCode", Newname="ResQualCode")
-		#Codes_Dict_Alt["SampleType"] = Codes_Dict_Alt["SampleTypeCode"]
-		#Codes_Dict_Alt.pop("SampleTypeCode")
-		#Codes_Dict_Alt["ResQualCode"] = Codes_Dict_Alt["ResultQualCode"]
-		#Codes_Dict_Alt.pop("ResultQualCode")
 		################################## Delete #################
 		Codes_Dict_Alt.pop("Analyte")
 		Codes_Dict_Alt.pop("Result")
@@ -174,35 +165,23 @@ def DictionaryFixer(Codes_Dict, filename ):
 		################# Rename #################
 		rename_Dict_Column(Codes_Dict_Alt, oldName="MatrixName", Newname="Matrix")
 		rename_Dict_Column(Codes_Dict_Alt, oldName="ResultsReplicate", Newname="ResultReplicate")
-		#Codes_Dict_Alt["Matrix"] = Codes_Dict_Alt["MatrixName"]
-		#Codes_Dict_Alt.pop("MatrixName")
-		#Codes_Dict_Alt["ResultReplicate"] = Codes_Dict_Alt["ResultsReplicate"]
-		#Codes_Dict_Alt.pop("ResultsReplicate")
 		################################## Delete #################
 		Codes_Dict_Alt.pop("ResultQualCode")
 
 	if filename == 'WaterChemistryData':
 		################# Rename #################
 		rename_Dict_Column(Codes_Dict_Alt, oldName="ProgramName", Newname="Program")
-		#Codes_Dict_Alt["Program"] = Codes_Dict_Alt["ProgramName"]
-		#Codes_Dict_Alt.pop("ProgramName")
 
 	if filename == 'ToxicityData':
 		################# Rename #################
 		rename_Dict_Column(Codes_Dict_Alt, oldName="ProgramName", Newname="Program")
 		rename_Dict_Column(Codes_Dict_Alt, oldName="BatchVerification", Newname="BatchVerificationCode")
-		#Codes_Dict_Alt["Program"] = Codes_Dict_Alt["ProgramName"]
-		#Codes_Dict_Alt.pop("ProgramName")
-		#Codes_Dict_Alt["BatchVerificationCode"] = Codes_Dict_Alt["BatchVerification"]
-		#Codes_Dict_Alt.pop("BatchVerification")
 		################################## Delete #################
 		Codes_Dict_Alt.pop("ResultsReplicate")
 
 	if filename == 'HabitatData':
 		################# Rename #################
 		rename_Dict_Column(Codes_Dict_Alt, oldName="ProgramName", Newname="Program")
-		#Codes_Dict_Alt["Program"] = Codes_Dict_Alt["ProgramName"]
-		#Codes_Dict_Alt.pop("ProgramName")
 		################################## Delete #################
 		Codes_Dict_Alt.pop("ResultsReplicate")
 		Codes_Dict_Alt.pop("Result")
@@ -212,14 +191,13 @@ def DictionaryFixer(Codes_Dict, filename ):
 def data_retrieval(tables, StartYear, EndYear, saveLocation):
 	writtenFiles = []
 	try:
+		# a python cursor is a synonym to a recordset or resultset.
 		cnxn = pyodbc.connect(Driver='SQL Server Native Client 11.0', Server=SERVER1, uid=UID, pwd=PWD)
 		cursor = cnxn.cursor()
 	except:
 		print("Couldn't connect to %s. It is down or you might have had a typo. Check internet connection." % SERVER1)
-		#break# a python cursor is a synonym to a recordset or resultset.
 	for count, (filename, table) in enumerate(tables.items()):
 		writtenFiles.append(os.path.join(saveLocation, '%s.txt' % filename))
-		#print(count, table, filename)
 		##############################################################################
 		########################## SQL Statement  ####################################
 		##############################################################################
@@ -233,15 +211,22 @@ def data_retrieval(tables, StartYear, EndYear, saveLocation):
 		      "AND CONVERT(datetime, '%d-12-31'));" % EndYear
 			cursor.execute(sql)
 			columns = [desc[0] for desc in cursor.description] + ['DataQuality'] + ['DataQualityIndicator'] + [
-				'DatumProjection']
+				'Spatial_Datum']
+		##############################################################################
+		########################## SQL Statement  ####################################
+		##############################################################################
+		Sitecolumns = []
 		if count > 0:
 			with open(writtenFiles[0], 'r', newline='', encoding='utf8') as WQX_sites:
 				WQX_Sites = {}
+				SitesCounter = 0
 				reader = csv.reader(WQX_sites, delimiter='\t', lineterminator='\n')
 				for row in reader:
-					WQX_Sites[str(row[2])] = row[11]
-					#WQX_Sites.append(row)
-			#site_Columns = dict(zip(WQX_Sites[0], range(len(WQX_Sites[0]))))
+					if SitesCounter == 0:
+						Sitecolumns = row
+						SitesCounter += 1
+					SiterowDict = dict(zip(Sitecolumns, row))
+					WQX_Sites[SiterowDict['StationCode']] = SiterowDict['Datum']
 		if 1 == 1:
 			with open(writtenFiles[count], 'w', newline='', encoding='utf8') as csvfile:
 				dw = csv.DictWriter(csvfile, fieldnames=columns, delimiter='\t', lineterminator='\n')
@@ -268,7 +253,10 @@ def data_retrieval(tables, StartYear, EndYear, saveLocation):
 				else:
 					for row in cursor:
 						filtered = [decodeAndStrip(t) for t in list(row)]
-						newDict = dict(zip(columns, filtered + [''] + [''] + [''] ))
+						if filename == 'BenthicData':
+							newDict = dict(zip(columns, filtered + [''] + [''] ))
+						else:
+							newDict = dict(zip(columns, filtered + [''] + [''] + [''] ))
 						DQ = []
 						QInd = ''
 						Codes_Dict_Alt = DictionaryFixer(Codes_Dict, filename)
@@ -314,10 +302,11 @@ def data_retrieval(tables, StartYear, EndYear, saveLocation):
 						else:
 							newDict['DataQuality'] = DQ_Codes[MaxDQ]
 							newDict['DataQualityIndicator'] = QInd
-						try:
-							newDict['DatumProjection'] = WQX_Sites[newDict['StationCode']]
-						except KeyError:
-							newDict['DatumProjection'] = 'Unknown'
+						if filename != 'BenthicData':
+							try:
+								newDict['Spatial_Datum'] = WQX_Sites[newDict['StationCode']]
+							except KeyError:
+								newDict['Spatial_Datum'] = 'NR'
 						##########  this is so slow!!!!!  ##################################################
 						#for row in WQX_Sites:
 						#	if newDict['StationCode'] in row[2]:
@@ -355,6 +344,7 @@ if __name__ == "__main__":
 ###################################################################################################
 # NODE Testing
 # 1912 Data Update Automation, Large File Loading
+# 2061 Testing
 
 # 1906 CEDEN Chemistry Data
 #  541 Surface Water Toxicity
@@ -378,10 +368,10 @@ fileWritten = 'C:\\Users\\AHill\\Documents\\CEDEN_DataMart\\test.txt'
 #try:
 	#Sign into the data.ca.gov website
 	#print("Connecting to data.ca.gov")
-	api = DatasetAPI(URI, user, password )
+api = DatasetAPI(URI, user, password )
 	#print("Connected")
 	#print("Pushing data")
-	r = api.attach_file_to_node(file=fileWritten, node_id=NODE, field='field_upload' )
+r = api.attach_file_to_node(file=fileWritten, node_id=NODE, field='field_upload' )
 #except:
 	#print('need this line')
 
@@ -399,7 +389,7 @@ fileWritten = 'C:\\Users\\AHill\\Documents\\CEDEN_DataMart\\test.txt'
 
 #os.remove(fileWritten)
 
-#cnxn.close()
-#del cnxn
+cnxn.close()
+del cnxn
 
 
