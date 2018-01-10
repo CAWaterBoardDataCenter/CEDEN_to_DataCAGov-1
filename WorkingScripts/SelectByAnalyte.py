@@ -30,5 +30,5 @@ if __name__ == "__main__":
 	path = 'C:\\Users\\AHill\\Documents\\CEDEN_DataMart'
 	fileName = 'WaterChemistryData_1994-2017.txt'
 	newFileName = 'Pesticides_DW_AN.txt'
-	field_filter = 'DW_AnalyteName'
+	column_filter = 'DW_AnalyteName'
 	selectByAnalyte(path=path, fileName=fileName, newFileName=newFileName, analytes=analytes, field_filter=field_filter)
