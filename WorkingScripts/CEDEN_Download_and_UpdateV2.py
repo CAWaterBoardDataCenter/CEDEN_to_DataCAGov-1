@@ -17,11 +17,11 @@ from dkan.client import DatasetAPI
 import shapefile as shp
 from shapely.geometry import Polygon, Point
 
-siteDictFile = "C:\\Users\\AHill\\Documents\\CEDEN_DataMart\\WQX_Stations_1994-2017.txt"
-polygon_in = shp.Reader("C:\\Users\\AHill\\Documents\\CEDEN_DataMart\\Regional_Board_Boundaries\\CA_WA_RBs.shp")
-polygon = polygon_in.shapes()
-shpfilePoints = [shape.points for shape in polygon]
-polygons = shpfilePoints
+siteDictFile = "C:\\Users\\AHill\\Documents\\CEDEN_DataMart\\WQX_Stations.txt"
+#polygon_in = shp.Reader("C:\\Users\\AHill\\Documents\\CEDEN_DataMart\\Regional_Board_Boundaries\\CA_WA_RBs_WGS84.shp")
+#polygon = polygon_in.shapes()
+#shpfilePoints = [shape.points for shape in polygon]
+#polygons = shpfilePoints
 
 
 import string
@@ -92,26 +92,28 @@ SampleTypeCode_list = {"LabBlank": 0, "CompBLDup": 0, "LCS": 0, "CRM": 0,
                        "FieldBlank": 0, "TravelBlank": 0, "EquipBlank": 0, "DLBlank": 0,
                        "FilterBlank": 0, "MS1": 0, "MS2": 0, "MS3": 0, "MSBLDup": 0}
 ProgramName_list = {}
+SampleDate_list = {"Jan  1 1950 12:00AM": 0, }
 Analyte_list = {"Surrogate":0, }
 MatrixName_list = {"blankwater": 0,  "Blankwater": 0,  "labwater": 0,  "blankmatrix": 0, }
 CollectionReplicate_list = {"0": 1, "1": 1, "2": 0, "3": 0, "4": 0, "5": 0, "6": 0,  "7": 0,  "8": 0, }
 ResultsReplicate_list = {"0": 1, "1": 1, "2": 0, "3": 0, "4": 0, "5": 0, "6": 0,  "7": 0,  "8": 0, }
 
-DQ_Codes = {0:'MetaData, QA record', 1:"Passed", 2:"Minimum review needed",
-            3:"Extensive review needed", 4:"Unknown data quality", 5:"Reject record", }
+DQ_Codes = {0: 'MetaData, QC record', 1: "Passed QC", 2: "Some review needed",
+            3: "Extensive review needed", 4: "Unknown data quality", 5: "Reject record", }
 
 Codes_Dict = {"QACode": QA_Code_list,
-			"BatchVerification": BatchVerificationCode_list,
-			"ResultQualCode": ResultQualCode_list,
-			"TargetLatitude": TargetLatitude_list,
-			"Result": Result_list,
-			"StationCode": StationCode_list,
-			"SampleTypeCode": SampleTypeCode_list,
-			"ProgramName": ProgramName_list,
-			"Analyte": Analyte_list,
-			"MatrixName": MatrixName_list,
-			"CollectionReplicate": CollectionReplicate_list,
-			"ResultsReplicate": ResultsReplicate_list, }
+              "BatchVerification": BatchVerificationCode_list,
+              "ResultQualCode": ResultQualCode_list,
+              "TargetLatitude": TargetLatitude_list,
+              "Result": Result_list,
+              "StationCode": StationCode_list,
+              "SampleTypeCode": SampleTypeCode_list,
+              "SampleDate": SampleDate_list,
+              "ProgramName": ProgramName_list,
+              "Analyte": Analyte_list,
+              "MatrixName": MatrixName_list,
+              "CollectionReplicate": CollectionReplicate_list,
+              "ResultsReplicate": ResultsReplicate_list, }
 
 tables = {"WQX_Stations": "DM_WQX_Stations_MV", "WaterChemistryData": "WQDMart_MV",
           "ToxicityData": "ToxDmart_MV", "TissueData": "TissueDMart_MV",
@@ -128,12 +130,9 @@ siteLocations = {"StationCode": "", "StationName": "", }
 ###########################################################################################################################
 #########################        Dictionary of code fixer 	below	###########################
 ###########################################################################################################################
-def rename_Dict_Column(oldName, Newname):
-	Codes_Dict_Alt[Newname] = Codes_Dict_Alt[oldName]
-	Codes_Dict_Alt.pop(oldName)
-
-def read_in_sites(sitesFile):
-
+def rename_Dict_Column(dictionary, oldName, Newname):
+	dictionary[Newname] = dictionary[oldName]
+	dictionary.pop(oldName)
 
 def DictionaryFixer(Codes_Dict, filename ):
 	Codes_Dict_Alt = Codes_Dict.copy()
@@ -150,14 +149,15 @@ def DictionaryFixer(Codes_Dict, filename ):
 		Codes_Dict_Alt.pop("TargetLatitude")
 		#Codes_Dict_Alt.pop("Result")
 		Codes_Dict_Alt.pop("SampleTypeCode")
+		Codes_Dict_Alt.pop("SampleDate")
 		Codes_Dict_Alt.pop("ProgramName")
 		Codes_Dict_Alt.pop("CollectionReplicate")
 		#Codes_Dict_Alt.pop("ResultsReplicate")
 
 	if filename == 'BenthicData':
 		################# Rename #################
-		rename_Dict_Column(oldName = "SampleTypeCode", Newname = "SampleType")
-		rename_Dict_Column(oldName="ResultQualCode", Newname="ResQualCode")
+		rename_Dict_Column(Codes_Dict_Alt, oldName = "SampleTypeCode", Newname = "SampleType")
+		rename_Dict_Column(Codes_Dict_Alt, oldName="ResultQualCode", Newname="ResQualCode")
 		#Codes_Dict_Alt["SampleType"] = Codes_Dict_Alt["SampleTypeCode"]
 		#Codes_Dict_Alt.pop("SampleTypeCode")
 		#Codes_Dict_Alt["ResQualCode"] = Codes_Dict_Alt["ResultQualCode"]
@@ -172,8 +172,8 @@ def DictionaryFixer(Codes_Dict, filename ):
 
 	if filename == 'TissueData':
 		################# Rename #################
-		rename_Dict_Column(oldName="MatrixName", Newname="Matrix")
-		rename_Dict_Column(oldName="ResultsReplicate", Newname="ResultReplicate")
+		rename_Dict_Column(Codes_Dict_Alt, oldName="MatrixName", Newname="Matrix")
+		rename_Dict_Column(Codes_Dict_Alt, oldName="ResultsReplicate", Newname="ResultReplicate")
 		#Codes_Dict_Alt["Matrix"] = Codes_Dict_Alt["MatrixName"]
 		#Codes_Dict_Alt.pop("MatrixName")
 		#Codes_Dict_Alt["ResultReplicate"] = Codes_Dict_Alt["ResultsReplicate"]
@@ -183,14 +183,14 @@ def DictionaryFixer(Codes_Dict, filename ):
 
 	if filename == 'WaterChemistryData':
 		################# Rename #################
-		rename_Dict_Column(oldName="ProgramName", Newname="Program")
+		rename_Dict_Column(Codes_Dict_Alt, oldName="ProgramName", Newname="Program")
 		#Codes_Dict_Alt["Program"] = Codes_Dict_Alt["ProgramName"]
 		#Codes_Dict_Alt.pop("ProgramName")
 
 	if filename == 'ToxicityData':
 		################# Rename #################
-		rename_Dict_Column(oldName="ProgramName", Newname="Program")
-		rename_Dict_Column(oldName="BatchVerification", Newname="BatchVerificationCode")
+		rename_Dict_Column(Codes_Dict_Alt, oldName="ProgramName", Newname="Program")
+		rename_Dict_Column(Codes_Dict_Alt, oldName="BatchVerification", Newname="BatchVerificationCode")
 		#Codes_Dict_Alt["Program"] = Codes_Dict_Alt["ProgramName"]
 		#Codes_Dict_Alt.pop("ProgramName")
 		#Codes_Dict_Alt["BatchVerificationCode"] = Codes_Dict_Alt["BatchVerification"]
@@ -200,7 +200,7 @@ def DictionaryFixer(Codes_Dict, filename ):
 
 	if filename == 'HabitatData':
 		################# Rename #################
-		rename_Dict_Column(oldName="ProgramName", Newname="Program")
+		rename_Dict_Column(Codes_Dict_Alt, oldName="ProgramName", Newname="Program")
 		#Codes_Dict_Alt["Program"] = Codes_Dict_Alt["ProgramName"]
 		#Codes_Dict_Alt.pop("ProgramName")
 		################################## Delete #################
@@ -218,57 +218,57 @@ def data_retrieval(tables, StartYear, EndYear, saveLocation):
 		print("Couldn't connect to %s. It is down or you might have had a typo. Check internet connection." % SERVER1)
 		#break# a python cursor is a synonym to a recordset or resultset.
 	for count, (filename, table) in enumerate(tables.items()):
+		writtenFiles.append(os.path.join(saveLocation, '%s.txt' % filename))
 		#print(count, table, filename)
 		##############################################################################
 		########################## SQL Statement  ####################################
 		##############################################################################
 		if table == 'DM_WQX_Stations_MV':
 			sql = "SELECT * FROM %s ;" % table
+			cursor.execute(sql)
+			columns = [desc[0] for desc in cursor.description]
 		else:
 			sql = "SELECT * FROM %s WHERE (SampleDate BETWEEN " % table + \
 		      "CONVERT(datetime, '%d-01-01') " % StartYear + \
 		      "AND CONVERT(datetime, '%d-12-31'));" % EndYear
-		##############################################################################
-		########################## SQL Statement  ####################################
-		##############################################################################
-		cursor.execute(sql)
-		writtenFiles.append(os.path.join(saveLocation,'%s_%d-%d.txt' % (filename,StartYear,EndYear)))
-		if table == 'DM_WQX_Stations_MV':
-			columns = [desc[0] for desc in cursor.description] + ["WB_Region"]
-		else:
-			columns = [desc[0] for desc in cursor.description] + ['DataQuality'] + ['DataQualityIndicator']
-		####  remove the " if/else of the lines below to over write files
-		if os.path.isfile(writtenFiles[count]):
-			print("\nFile %s exists" % writtenFiles[count])
-		else:
+			cursor.execute(sql)
+			columns = [desc[0] for desc in cursor.description] + ['DataQuality'] + ['DataQualityIndicator'] + [
+				'DatumProjection']
+		if count > 0:
+			with open(writtenFiles[0], 'r', newline='', encoding='utf8') as WQX_sites:
+				WQX_Sites = {}
+				reader = csv.reader(WQX_sites, delimiter='\t', lineterminator='\n')
+				for row in reader:
+					WQX_Sites[str(row[2])] = row[11]
+					#WQX_Sites.append(row)
+			#site_Columns = dict(zip(WQX_Sites[0], range(len(WQX_Sites[0]))))
+		if 1 == 1:
 			with open(writtenFiles[count], 'w', newline='', encoding='utf8') as csvfile:
 				dw = csv.DictWriter(csvfile, fieldnames=columns, delimiter='\t', lineterminator='\n')
 				dw.writeheader()
 				writer = csv.writer(csvfile, csv.QUOTE_MINIMAL, delimiter='\t', lineterminator='\n')
-				for row in cursor:
-					filtered = [decodeAndStrip(t) for t in list(row)]
-					if table == 'DM_WQX_Stations_MV':
-						newDict = dict(zip(columns, filtered + ['']))
-						for count, polygon in enumerate(polygons):
-							point = Point(float(newDict["TargetLongitude"]), float(newDict["TargetLatitude"]))
-							poly = Polygon(polygon)
-							if poly.contains(point):
-								#print(polygon_in.records()[count][3])
-								newDict["WB_Region"] = polygon_in.records()[count][3]
+				##########################
+				if table == 'DM_WQX_Stations_MV':
+					for row in cursor:
+						filtered = [decodeAndStrip(t) for t in list(row)]
+						newDict = dict(zip(columns, filtered ))
+						#point = Point(float(newDict["TargetLongitude"]), float(newDict["TargetLatitude"]))
+						##########  this is so slow!!!!!  ##################################################
+						#for count, polygon in enumerate(polygons):
+						#	poly = Polygon(polygon)
+						#	if count == 9 and newDict["CA_WB_Region"] != '':
+						#		continue
+						#	elif poly.contains(point):
+								# print(polygon_in.records()[count][3])
+						#		newDict["CA_WB_Region"] = polygon_in.records()[count][3]
+						#	else:
+						#		newDict["CA_WB_Region"] = 'Outside of SHP file'
+						##########  this is so slow!!!!!  ##################################################
 						writer.writerow(list(newDict.values()))
-						sitesFile = os.path.join(saveLocation, writtenFiles[count])
-					else:
-
-						with open(sitesFile, 'r', newline='', encoding='utf8') as sites:
-							reader = csv.reader(sites, delimiter='\t', lineterminator='\n')
-							for count, row in enumerate(reader):
-								if count == 0:
-									columns = row
-									continue
-								else:
-									rowDict = dict(zip(columns, row))
-
-						newDict = dict(zip(columns, filtered + [''] + ['']))
+				else:
+					for row in cursor:
+						filtered = [decodeAndStrip(t) for t in list(row)]
+						newDict = dict(zip(columns, filtered + [''] + [''] + [''] ))
 						DQ = []
 						QInd = ''
 						Codes_Dict_Alt = DictionaryFixer(Codes_Dict, filename)
@@ -277,7 +277,7 @@ def data_retrieval(tables, StartYear, EndYear, saveLocation):
 								for codeVal in newDict[codeCol].split(','):
 									if codeVal in list(Codes_Dict_Alt[codeCol]):
 										DQ += [Codes_Dict_Alt[codeCol][codeVal]]
-							elif codeCol != 'QACode':
+							else:
 								for codeVal in [newDict[codeCol]]:
 									if codeVal in list(Codes_Dict_Alt[codeCol]):
 										DQ += [Codes_Dict_Alt[codeCol][codeVal]]
@@ -286,7 +286,8 @@ def data_retrieval(tables, StartYear, EndYear, saveLocation):
 							if codeCol == 'QACode':
 								for codeVal in newDict[codeCol].split(','):
 									if codeVal in list(Codes_Dict_Alt[codeCol]):
-										if any([Codes_Dict_Alt[codeCol][codeVal] == 0, Codes_Dict_Alt[codeCol][codeVal] == 1]):
+										if any([Codes_Dict_Alt[codeCol][codeVal] == 0,
+										        Codes_Dict_Alt[codeCol][codeVal] == 1]):
 											continue
 										elif MaxDQ == Codes_Dict_Alt[codeCol][codeVal]:
 											if QInd == '':
@@ -296,10 +297,11 @@ def data_retrieval(tables, StartYear, EndYear, saveLocation):
 											else:
 												QInd += ', ' + codeCol
 									continue
-							elif codeCol != 'QACode':
+							else:
 								for codeVal in [newDict[codeCol]]:
 									if codeVal in list(Codes_Dict_Alt[codeCol]):
-										if any([Codes_Dict_Alt[codeCol][codeVal] == 0, Codes_Dict_Alt[codeCol][codeVal] == 1]):
+										if any([Codes_Dict_Alt[codeCol][codeVal] == 0,
+													Codes_Dict_Alt[codeCol][codeVal] == 1]):
 											continue
 										elif MaxDQ == Codes_Dict_Alt[codeCol][codeVal]:
 											if QInd == '':
@@ -312,10 +314,23 @@ def data_retrieval(tables, StartYear, EndYear, saveLocation):
 						else:
 							newDict['DataQuality'] = DQ_Codes[MaxDQ]
 							newDict['DataQualityIndicator'] = QInd
+						try:
+							newDict['DatumProjection'] = WQX_Sites[newDict['StationCode']]
+						except KeyError:
+							newDict['DatumProjection'] = 'Unknown'
+						##########  this is so slow!!!!!  ##################################################
+						#for row in WQX_Sites:
+						#	if newDict['StationCode'] in row[2]:
+						#		newDict['DatumProjection'] = row[11]
+								#newDict['CA_Regional_Board'] = row[16]
+						#	else:
+						#		newDict['DatumProjection'] = 'Unknown'
+								#newDict['CA_Regional_Board'] = 'Unlisted'
+						##########  this is so slow!!!!!  ##################################################
 						writer.writerow(list(newDict.values()))
-				print("Finished data retrieval for the %s table" %table)
+				print("Finished data retrieval for the %s table" % table)
 	cnxn.close()
-	return writtenFiles
+	return writtenFiles, WQX_Sites#, site_Columns
 
 
 ##############################################################################
@@ -327,10 +342,10 @@ if __name__ == "__main__":
 	SERVER1 = os.environ.get('SERVER1')
 	UID = os.environ.get('UID')
 	PWD = os.environ.get('PWD')
-	StartYear = 1994
-	EndYear = 2017
+	StartYear = 1950
+	EndYear = 2018
 	saveLocation = "C:\\Users\\AHill\\Documents\\CEDEN_DataMart"
-	FILES = data_retrieval(tables, StartYear, EndYear, saveLocation)
+	FILES, WQX_Sites = data_retrieval(tables, StartYear, EndYear, saveLocation)
 
 
 
@@ -350,23 +365,23 @@ if __name__ == "__main__":
 
 
 
-#NODE = 1912
+NODE = 2061
 
 
 #fileWritten = FILES[1]
 
-#user = os.environ.get('DCG_user')
-#password = os.environ.get('DCG_pw')
-#URI = os.environ.get('URI')
-# fileWritten = 'C:\\Users\\AHill\\Documents\\CEDEN_DataMart\\ToxicityData_2000-2017.txt'
+user = os.environ.get('DCG_user')
+password = os.environ.get('DCG_pw')
+URI = os.environ.get('URI')
+fileWritten = 'C:\\Users\\AHill\\Documents\\CEDEN_DataMart\\test.txt'
 # Attach dataset data
 #try:
 	#Sign into the data.ca.gov website
 	#print("Connecting to data.ca.gov")
-	#api = DatasetAPI(URI, user, password )
+	api = DatasetAPI(URI, user, password )
 	#print("Connected")
 	#print("Pushing data")
-	#r = api.attach_file_to_node(file=fileWritten, node_id=NODE, field='field_upload' )
+	r = api.attach_file_to_node(file=fileWritten, node_id=NODE, field='field_upload' )
 #except:
 	#print('need this line')
 
