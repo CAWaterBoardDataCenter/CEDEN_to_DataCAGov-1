@@ -1,31 +1,64 @@
 '''
 
+Author:
+	Andrew Dix Hill; https://github.com/AndrewDixHill ; andrew.hill@waterboards.ca.gov
+
+Agency:
+	California State Water Resource Control Board (SWRCB)
+
 Purpose:
+	This script is intended to query, clean and calculate new fields for 5 different
+datasets from an internal SWRCB DataMart of CEDEN data. The original datasets contains
+non-ascii characters and restricted character such as tabs, feedlines, return lines which
+this script removes. This script also applies a data quality estimate to every record.
+This data quality estimate is calculated from a data quality decision tree found here XXXX.
+	In addition, this script subsets the newly created datasets into much smaller and more
+specialized data based on a list of analytes.
+	Eventually this script will also publish each dataset to the open data water portal
+on data.ca.gov although this step is currently in development.
 
+How to use this script:
+	From a powershell prompt (windows), call python and specify
+	the complete path to this file. Below is an example, where XXXXXXX should be replaced
+	with the filename and the path should be specific to the file location:
+	python C:\\Users\\AHill\\Downloads\\XXXXXXX.py
 
+Prerequisites:
+	Windows platform (not strictly requirement but I was unable to get this library
+		working on a mac... I tried)
+	on mac
+	Python 3.X
+	pyodbc library for python.  See https://github.com/mkleehammer/pyodbc
+	dkan library for python.    See https://github.com/GetDKAN/pydkan
 
 '''
 
+# Import the necessary libraries of python code
 import pyodbc
-#import pandas as pd
-#import numpy as np
 import os, csv
+from dkan.client import DatasetAPI
+##### These are not currently in use
 #import time
 #import json
-from dkan.client import DatasetAPI
+#import pandas as pd
+#import numpy as np
 #import shapefile as shp
 #from shapely.geometry import Polygon, Point
 
-siteDictFile = "C:\\Users\\AHill\\Documents\\CEDEN_DataMart\\WQX_Stations.txt"
+####   These lines are also not in use yet
+#siteDictFile = "C:\\Users\\AHill\\Documents\\CEDEN_DataMart\\WQX_Stations.txt"
 #polygon_in = shp.Reader("C:\\Users\\AHill\\Documents\\CEDEN_DataMart\\Regional_Board_Boundaries\\CA_WA_RBs_WGS84.shp")
 #polygon = polygon_in.shapes()
 #shpfilePoints = [shape.points for shape in polygon]
 #polygons = shpfilePoints
 
 
+#  This is the filter that every cell in each dataset gets passed through. From the "string" library, we are only
+# allowing printable characters except pipes, quotes, tabs, returns, control breaks, etc.
 import string
 printable = set(string.printable)-set('|"\'`\t\r\n\f\v')
 
+# decodeAndStrip takes a string and filters each character through the printable variable. It returns a filtered string.
 def decodeAndStrip(t):
 	filter1 = ''.join(filter(lambda x: x in printable, str(t)))
 	return filter1
@@ -35,7 +68,9 @@ def decodeAndStrip(t):
 ##################        Dictionaries for QA codes below 		###############
 ###############################################################################
 
-#These are dictionaries that hold the code and the Tier level of the data...
+# The following python dictionaries refer to codes and their corresponding data quality value as determined by
+# Melissa Morris of SWRCB, Office of Information Management and Analysis. 0: QC record, 1: Passed QC, 2: Needs some
+# review, 3: Needs extensive review, 4: unknown data quality, 5: reject data record  (as of 1/10/18)
 QA_Code_list = {"AWM": 1,"AY": 2,"BB": 2,"BBM": 2,"BCQ": 1,"BE": 2,"BH": 1,"BLM": 3,
                 "BRKA": 2,"BS": 2,"BT": 5,"BV": 3,"BX": 3,"BY": 3,"BZ": 3,"BZ15": 2,
                 "C": 1,"CE": 3,"CIN": 2,"CJ": 2,"CNP": 2,"CQA": 1,"CS": 2,"CSG": 2,
@@ -100,6 +135,8 @@ ResultsReplicate_list = {"0": 1, "1": 1, "2": 0, "3": 0, "4": 0, "5": 0, "6": 0,
 DQ_Codes = {0: 'MetaData, QC record', 1: "Passed QC", 2: "Some review needed",
             3: "Extensive review needed", 4: "Unknown data quality", 5: "Reject record", }
 
+# the Codes_Dict variable is a dictionary template for each dataset. Some datasets do not have all of these columns
+# and as such have to be removed with the DictionaryFixer definition below.
 Codes_Dict = {"QACode": QA_Code_list,
               "BatchVerification": BatchVerificationCode_list,
               "ResultQualCode": ResultQualCode_list,
@@ -114,11 +151,14 @@ Codes_Dict = {"QACode": QA_Code_list,
               "CollectionReplicate": CollectionReplicate_list,
               "ResultsReplicate": ResultsReplicate_list, }
 
+siteLocations = {"StationCode": "", "StationName": "", }
+
+# this is a Python dictionary of filenames and their Datamart names. This can be expanded by adding to the end of the
+#  list. The FIRST key in this dictionary MUST be WQX_Stations
 tables = {"WQX_Stations": "DM_WQX_Stations_MV", "WaterChemistryData": "WQDMart_MV",
           "ToxicityData": "ToxDmart_MV", "TissueData": "TissueDMart_MV",
           "BenthicData": "BenthicDMart_MV", "HabitatData": "HabitatDMart_MV", }
 
-siteLocations = {"StationCode": "", "StationName": "", }
 
 ###########################################################################################################################
 #########################        Dictionaries for QA codes above		###############################################
@@ -128,10 +168,17 @@ siteLocations = {"StationCode": "", "StationName": "", }
 ###########################################################################################################################
 #########################        Dictionary of code fixer 	below	###########################
 ###########################################################################################################################
-def rename_Dict_Column(dictionary, oldName, Newname):
+
+# rename_Dict_Column simplifies the process of creating a new key in the dictionary and removing the old key.
+ def rename_Dict_Column(dictionary, oldName, Newname):
 	dictionary[Newname] = dictionary[oldName]
 	dictionary.pop(oldName)
 
+#The DictionaryFixer creates custom dictionaries for each dataset since not all columns are present or have the same
+# name between datasets. Ex: Water chemistry has a "ProgramName" column while all of the other datasets use "Program"
+# the Custom dictionary is called Codes_Dict_Alt and the ".pop" deletes unwanted keys. If you see a key error,
+# check to see if your dataset has a column with that same name. If it is different, rename using rename_Dict_Column.
+#  If it doesn't exist, use ".pop" to remove it as below.
 def DictionaryFixer(Codes_Dict, filename ):
 	Codes_Dict_Alt = Codes_Dict.copy()
 	if filename == 'WQX_Stations':
@@ -188,19 +235,32 @@ def DictionaryFixer(Codes_Dict, filename ):
 		Codes_Dict_Alt.pop("BatchVerification")
 	return Codes_Dict_Alt
 
+# data_retrieval is the meat of this script. It takes the tables dictionary defined above, two dates (specified
+# below), and a save location for the output files.
 def data_retrieval(tables, StartYear, EndYear, saveLocation):
+	# initialize writtenFiles where we will store the output complete file paths in list format.
 	writtenFiles = []
 	try:
 		# a python cursor is a synonym to a recordset or resultset.
+		# this is the connection to SWRCB internal DataMart. Server, IUD, PWD are set as environmental variables so
+		# no passwords are in plain text, see "Main" below for importing examples. UID
+		# below create a connection
 		cnxn = pyodbc.connect(Driver='SQL Server Native Client 11.0', Server=SERVER1, uid=UID, pwd=PWD)
+		# creates a cursor which will execute the sql statement
 		cursor = cnxn.cursor()
 	except:
-		print("Couldn't connect to %s. It is down or you might have had a typo. Check internet connection." % SERVER1)
+		print("Couldn't connect to %s. It is down or you might have a typo somewhere. Make sure you've got the "
+		      "right password and Server id. Check internet "
+		      "connection." % SERVER1)
+	# This loop iterates on every item in the tables list.
 	for count, (filename, table) in enumerate(tables.items()):
 		writtenFiles.append(os.path.join(saveLocation, '%s.txt' % filename))
 		##############################################################################
 		########################## SQL Statement  ####################################
 		##############################################################################
+		# The DM_WQX_Stations_MV table should not be filtered by date but the significant difference between this
+		# table and the others is that we are not calculating new fields a do not have to add columns. Also,
+		# benthic dataset does not need the Spatial_Datum column
 		if table == 'DM_WQX_Stations_MV':
 			sql = "SELECT * FROM %s ;" % table
 			cursor.execute(sql)
@@ -210,12 +270,21 @@ def data_retrieval(tables, StartYear, EndYear, saveLocation):
 		      "CONVERT(datetime, '%d-01-01') " % StartYear + \
 		      "AND CONVERT(datetime, '%d-12-31'));" % EndYear
 			cursor.execute(sql)
-			columns = [desc[0] for desc in cursor.description] + ['DataQuality'] + ['DataQualityIndicator'] + [
-				'Spatial_Datum']
+			#  This is where we could change the order of all the columns.... don't forget to write them in the same
+			# order
+			if filename == 'BenthicData':
+				columns = [desc[0] for desc in cursor.description] + ['DataQuality'] + ['DataQualityIndicator']
+			else:
+				columns = [desc[0] for desc in cursor.description] + ['DataQuality'] + ['DataQualityIndicator'] + [
+					'Spatial_Datum']
 		##############################################################################
 		########################## SQL Statement  ####################################
 		##############################################################################
+		#initialize Sitecolumns
 		Sitecolumns = []
+		# the First key in Tables must be the WQX_Stations. When count is 0, we do NOT read in
+		#  the WQX stations. If the script has already processed WQX_Stations (count>0) then we read in the file for
+		# accessing the datum associated with the station codes.
 		if count > 0:
 			with open(writtenFiles[0], 'r', newline='', encoding='utf8') as WQX_sites:
 				WQX_Sites = {}
@@ -321,6 +390,31 @@ def data_retrieval(tables, StartYear, EndYear, saveLocation):
 	cnxn.close()
 	return writtenFiles, WQX_Sites#, site_Columns
 
+####################################################################################
+############################# Select By Analyte Subset #############################
+####################################################################################
+def selectByAnalyte(path, fileName, analytes, newFileName, field_filter):
+	file = os.path.join(path, fileName)
+	fileOut = os.path.join(path, newFileName)
+	columns = []
+	with open(file, 'r', newline='', encoding='utf8') as txtfile:
+		reader = csv.reader(txtfile, delimiter='\t', lineterminator='\n')
+		with open(fileOut, 'w', newline='', encoding='utf8') as txtfileOut:
+			writer = csv.writer(txtfileOut, csv.QUOTE_NONE, delimiter='\t', lineterminator='\n')
+			count = 0
+			for row in reader:
+				if count == 0:
+					columns = row
+					writer.writerow(row)
+					count += 1
+					continue
+				rowDict = dict(zip(columns, row))
+				if rowDict[field_filter] in analytes:
+					writer.writerow(row)
+				####################################################################################
+				############################# Select By Analyte Subset #############################
+				####################################################################################
+
 
 ##############################################################################
 ########################## Main Statement  ###################################
@@ -335,6 +429,94 @@ if __name__ == "__main__":
 	EndYear = 2018
 	saveLocation = "C:\\Users\\AHill\\Documents\\CEDEN_DataMart"
 	FILES, WQX_Sites = data_retrieval(tables, StartYear, EndYear, saveLocation)
+	print("\n\n\t\tCompleted data retrieval and processing\n\t\t\tfrom internal DataMart\n\n")
+
+	# saved datasets are likely:
+	# FILES[0]: "WQX_Stations"
+	# FILES[1]: "WaterChemistryData"
+	# FILES[2]: "ToxicityData"
+	# FILES[3]: "TissueData"
+	# FILES[4]: "BenthicData"
+	# FILES[5]: "HabitatData"
+	# use FILES[X] to subset future datasets, as in example below...
+
+	############## Subsets of datasets Safe To Swim
+	print("\nStarting data subset for Safe to Swim...")
+	WaterChem = FILES[1]
+	path, fileName = os.path.split(WaterChem)
+	analytes = ['E. Coli', 'Enterococcus', 'Coliform, Total', 'Coliform, Fecal', ]
+	newFileName = 'SafeToSwim.txt'
+	column_filter = 'Analyte'
+	selectByAnalyte(path=path, fileName=fileName, newFileName=newFileName, analytes=analytes, field_filter=column_filter)
+	print("\t\tFinished writing data subset for Safe to Swim\n\n")
+	############## Subsets of datasets Safe To Swim
+
+
+	############## Subsets of datasets for Pesticides
+	print("\nStarting data subset for Pesticides....")
+	analytes = ["Acetamiprid", "Acibenzolar-S-methyl", "Aldicarb", "Aldicarb ", "Aldicarb Sulfone",
+	            "Aldicarb Sulfoxide", "Aldrin", "Aldrin, Particulate", "Allethrin", "Ametryn", "Aminocarb", "AMPA",
+	            "Anilazine", "Aspon", "Atraton", "Atrazine", "Azinphos Ethyl", "Azinphos Methyl", "Azoxystrobin",
+	            "Barban", "Bendiocarb", "Benfluralin", "Benomyl", "Bensulfuron Methyl", "Bentazon", "Bifenox",
+	            "Bifenthrin", "Bispyribac Sodium", "Bolstar", "Bromacil", "Captafol", "Captan", "Carbaryl",
+	            "Carbendazim", "Carbofuran", "Carbophenothion", "Carfentrazone Ethyl", "Chlorantraniliprole",
+	            "Chlordane", "Chlordane, cis-", "Chlordane, cis-, Particulate", "Chlordane, Technical",
+	            "Chlordane, trans-", "Chlordane, trans-, Particulate", "Chlordene, cis-", "Chlordene, trans-",
+	            "Chlorfenapyr", "Chlorfenvinphos", "Chlorobenzilate", "Chlorothalonil", "Chlorpropham", "Chlorpyrifos",
+	            "Chlorpyrifos Methyl", "Chlorpyrifos Methyl, Particulate", "Chlorpyrifos Methyl/Fenchlorphos",
+	            "Chlorpyrifos, Particulate", "Cinerin-2", "Ciodrin", "Clomazone", "Clothianidin", "Coumaphos",
+	            "Cyanazine", "Cyantraniliprole", "Cycloate", "Cyfluthrin", "Cyfluthrin, beta-", "Cyfluthrin-1",
+	            "Cyfluthrin-2", "Cyfluthrin-3", "Cyfluthrin-4", "Cyhalofop-butyl", "Cyhalothrin", "Cyhalothrin lambda-",
+	            "Cyhalothrin, gamma-", "Cyhalothrin, lambda-1", "Cyhalothrin, lambda-2", "Cypermethrin",
+	            "Cypermethrin-1", "Cypermethrin-2", "Cypermethrin-3", "Cypermethrin-4", "Cyprodinil", "Dacthal",
+	            "Dacthal, Particulate", "DCBP(p,p')", "DDD(o,p')", "DDD(o,p'), Particulate", "DDD(p,p')",
+	            "DDD(p,p'), Particulate", "DDE(o,p')", "DDE(o,p'), Particulate", "DDE(p,p')", "DDE(p,p'), Particulate",
+	            "DDMU(p,p')", "DDMU(p,p'), Particulate", "DDT(o,p')", "DDT(o,p'), Particulate", "DDT(p,p')",
+	            "DDT(p,p'), Particulate", "Deltamethrin", "Deltamethrin/Tralomethrin", "Demeton", "Demeton-O",
+	            "Demeton-s", "Desethyl-Atrazine", "Desisopropyl-Atrazine", "Diazinon", "Diazinon, Particulate",
+	            "Dichlofenthion", "Dichlone", "Dichloroaniline, 3,5-", "Dichlorobenzenamine, 3,4-",
+	            "Dichlorophenyl Urea, 3,4-", "Dichlorophenyl-3-methyl Urea, 3,4-", "Dichlorvos", "Dichrotophos",
+	            "Dicofol", "Dicrotophos", "Dieldrin", "Dieldrin, Particulate", "Diflubenzuron", "Dimethoate",
+	            "Dioxathion", "Diphenamid", "Diphenylamine", "Diquat", "Disulfoton", "Dithiopyr", "Diuron",
+	            "Endosulfan I", "Endosulfan I, Particulate", "Endosulfan II", "Endosulfan II, Particulate",
+	            "Endosulfan Sulfate", "Endosulfan Sulfate, Particulate", "Endrin", "Endrin Aldehyde", "Endrin Ketone",
+	            "Endrin, Particulate", "EPN", "EPTC", "Esfenvalerate", "Esfenvalerate/Fenvalerate",
+	            "Esfenvalerate/Fenvalerate-1", "Esfenvalerate/Fenvalerate-2", "Ethafluralin", "Ethion", "Ethoprop",
+	            "Famphur", "Fenamiphos", "Fenchlorphos", "Fenhexamid", "Fenitrothion", "Fenpropathrin", "Fensulfothion",
+	            "Fenthion", "Fenuron", "Fenvalerate", "Fipronil", "Fipronil Amide", "Fipronil Desulfinyl",
+	            "Fipronil Desulfinyl Amide", "Fipronil Sulfide", "Fipronil Sulfone", "Flonicamid", "Fluometuron",
+	            "Fluridone", "Flusilazole", "Fluvalinate", "Fluxapyroxad", "Folpet", "Fonofos", "Glyphosate",
+	            "Halosulfuron Methyl", "HCH, alpha-", "HCH, alpha-, Particulate", "HCH, beta-",
+	            "HCH, beta-, Particulate", "HCH, delta-", "HCH, delta-, Particulate", "HCH, gamma-",
+	            "HCH, gamma-, Particulate", "Heptachlor", "Heptachlor Epoxide", "Heptachlor Epoxide, Particulate",
+	            "Heptachlor Epoxide/Oxychlordane", "Heptachlor Epoxide/Oxychlordane, Particulate",
+	            "Heptachlor, Particulate", "Hexachlorobenzene", "Hexachlorobenzene, Particulate", "Hexazinone",
+	            "Hydroxyatrazine, 2-", "Hydroxycarbofuran, 3- ", "Hydroxypropanal, 3-", "Imazalil", "Indoxacarb",
+	            "Isofenphos", "Isoxaben", "Jasmolin-2", "Kepone", "Ketocarbofuran, 3-", "Leptophos", "Linuron",
+	            "Malathion", "Merphos", "Methamidophos", "Methidathion", "Methiocarb", "Methomyl", "Methoprene",
+	            "Methoxychlor", "Methoxychlor, Particulate", "Methoxyfenozide", "Methyl (3,4-dichlorophenyl)carbamate",
+	            "Mevinphos", "Mexacarbate", "Mirex", "Mirex, Particulate", "Molinate", "Monocrotophos", "Monuron",
+	            "Naled", "Neburon", "Nonachlor, cis-", "Nonachlor, cis-, Particulate", "Nonachlor, trans-",
+	            "Nonachlor, trans-, Particulate", "Norflurazon", "Oxadiazon", "Oxadiazon, Particulate", "Oxamyl",
+	            "Oxychlordane", "Oxychlordane, Particulate", "Oxyfluorfen", "Paraquat", "Parathion, Ethyl",
+	            "Parathion, Methyl", "PCNB", "Pebulate", "Pendimethalin", "Penoxsulam", "Permethrin",
+	            "Permethrin, cis-", "Permethrin, trans-", "Perthane", "Phenothrin", "Phorate", "Phosalone", "Phosmet",
+	            "Phosphamidon", "Piperonyl Butoxide", "Pirimiphos Methyl", "PrAllethrin", "Procymidone", "Profenofos",
+	            "Profluralin", "Prometon", "Prometryn", "Propachlor", "Propanil", "Propargite", "Propazine", "Propham",
+	            "Propoxur", "Pymetrozin", "Pyrethrin-2", "Pyrimethanil", "Quinoxyfen", "Resmethrin", "Safrotin",
+	            "Secbumeton", "Siduron", "Simazine", "Simetryn", "Sulfallate", "Sulfotep", "Tebuthiuron", "Tedion",
+	            "Terbufos", "Terbuthylazine", "Terbutryn", "Tetrachloro-m-xylene", "Tetrachlorvinphos",
+	            "Tetraethyl Pyrophosphate", "Tetramethrin", "T-Fluvalinate", "Thiamethoxam", "Thiobencarb", "Thionazin",
+	            "Tokuthion", "Total DDDs", "Total DDEs", "Total DDTs", "Total HCHs", "Total Pyrethrins", "Toxaphene",
+	            "Tralomethrin", "Tributyl Phosphorotrithioate, S,S,S-", "Trichlorfon", "Trichloronate", "Triclopyr",
+	            "Tridimephon", "Vinclozolin", ]
+	WaterChem = FILES[1]
+	path, fileName = os.path.split(WaterChem)
+	newFileName = 'Pesticides.txt'
+	column_filter = 'DW_AnalyteName'
+	selectByAnalyte(path=path, fileName=fileName, newFileName=newFileName, analytes=analytes, field_filter=column_filter)
+	print("\t\tFinished writing data subset for Pesticides\n\n")
+	############## Subsets of datasets for Pesticides
 
 
 
