@@ -35,8 +35,9 @@ Prerequisites:
 
 # Import the necessary libraries of python code
 import pyodbc
-import os, csv
+import os, csv, re
 from dkan.client import DatasetAPI
+from datetime import datetime
 ##### These are not currently in use
 #import time
 #import json
@@ -170,7 +171,7 @@ tables = {"WQX_Stations": "DM_WQX_Stations_MV", "WaterChemistryData": "WQDMart_M
 ###########################################################################################################################
 
 # rename_Dict_Column simplifies the process of creating a new key in the dictionary and removing the old key.
- def rename_Dict_Column(dictionary, oldName, Newname):
+def rename_Dict_Column(dictionary, oldName, Newname):
 	dictionary[Newname] = dictionary[oldName]
 	dictionary.pop(oldName)
 
@@ -283,8 +284,8 @@ def data_retrieval(tables, StartYear, EndYear, saveLocation):
 		#initialize Sitecolumns
 		Sitecolumns = []
 		# the First key in Tables must be the WQX_Stations. When count is 0, we do NOT read in
-		#  the WQX stations. If the script has already processed WQX_Stations (count>0) then we read in the file for
-		# accessing the datum associated with the station codes.
+		#  the WQX stations. If the script has already processed past WQX_Stations (count>0) then we read in the file
+		#  for accessing the datum associated with the station codes.
 		if count > 0:
 			with open(writtenFiles[0], 'r', newline='', encoding='utf8') as WQX_sites:
 				WQX_Sites = {}
@@ -307,7 +308,7 @@ def data_retrieval(tables, StartYear, EndYear, saveLocation):
 						filtered = [decodeAndStrip(t) for t in list(row)]
 						newDict = dict(zip(columns, filtered ))
 						#point = Point(float(newDict["TargetLongitude"]), float(newDict["TargetLatitude"]))
-						##########  this is so slow!!!!!  ##################################################
+						##########  this is so slow! and we've chosen not to use WB regions just yet########################
 						#for count, polygon in enumerate(polygons):
 						#	poly = Polygon(polygon)
 						#	if count == 9 and newDict["CA_WB_Region"] != '':
@@ -317,7 +318,7 @@ def data_retrieval(tables, StartYear, EndYear, saveLocation):
 						#		newDict["CA_WB_Region"] = polygon_in.records()[count][3]
 						#	else:
 						#		newDict["CA_WB_Region"] = 'Outside of SHP file'
-						##########  this is so slow!!!!!  ##################################################
+						##########  this is so slow! and we've chosen not to use WB regions just yet########################
 						writer.writerow(list(newDict.values()))
 				else:
 					for row in cursor:
@@ -334,6 +335,31 @@ def data_retrieval(tables, StartYear, EndYear, saveLocation):
 								for codeVal in newDict[codeCol].split(','):
 									if codeVal in list(Codes_Dict_Alt[codeCol]):
 										DQ += [Codes_Dict_Alt[codeCol][codeVal]]
+							elif codeCol == 'Analyte':
+								if bool(re.search('[Ss]urrogate', newDict[codeCol])):
+									DQ += [0]
+							elif codeCol == 'ResultQualCode' or codeCol == 'ResQualCode':
+								for codeVal in [newDict[codeCol]]:
+									if codeVal == 'ND':
+										# the Benthic dataset does not have a result column
+										# we therefore treat the exception of a ND value
+										# as a passed record.s
+										try:
+											RQC = newDict['Result']
+											if not isinstance(RQC, str) and RQC > 0:
+												DQ += [5]
+											else:
+												DQ += [1]
+										except KeyError:
+											DQ += [1]
+									elif codeVal == 'DNQ' and int(newDict['SampleDate'][:4]) < 2008:
+										DQ += [5]
+										continue
+									#elif codeVal == 'A' and newDict['Analyte'] == 'BACTERIA':
+										#DQ += [5]
+									elif codeVal in list(Codes_Dict_Alt[codeCol]):
+										DQ += [Codes_Dict_Alt[codeCol][codeVal]]
+										continue
 							else:
 								for codeVal in [newDict[codeCol]]:
 									if codeVal in list(Codes_Dict_Alt[codeCol]):
@@ -422,14 +448,21 @@ def selectByAnalyte(path, fileName, analytes, newFileName, field_filter):
 
 # Necessary variables imported from user's environmental variables.
 if __name__ == "__main__":
+	print('\n\n\n\n')
 	SERVER1 = os.environ.get('SERVER1')
 	UID = os.environ.get('UID')
 	PWD = os.environ.get('PWD')
 	StartYear = 1950
 	EndYear = 2018
 	saveLocation = "C:\\Users\\AHill\\Documents\\CEDEN_DataMart"
+	startTime = datetime.now()
 	FILES, WQX_Sites = data_retrieval(tables, StartYear, EndYear, saveLocation)
 	print("\n\n\t\tCompleted data retrieval and processing\n\t\t\tfrom internal DataMart\n\n")
+	totalTime = datetime.now() - startTime
+	seconds = totalTime.seconds
+	minutes = seconds // 60
+	seconds = seconds - minutes * 60
+	print("Data retrieval and processing took %d minutes and %d seconds" % (minutes, seconds))
 
 	# saved datasets are likely:
 	# FILES[0]: "WQX_Stations"
@@ -545,15 +578,15 @@ NODE = 2061
 user = os.environ.get('DCG_user')
 password = os.environ.get('DCG_pw')
 URI = os.environ.get('URI')
-fileWritten = 'C:\\Users\\AHill\\Documents\\CEDEN_DataMart\\test.txt'
+fileWritten = 'C:\\Users\\AHill\\Documents\\CEDEN_DataMart\\testExtraSmall2.csv'
 # Attach dataset data
 #try:
 	#Sign into the data.ca.gov website
 	#print("Connecting to data.ca.gov")
-api = DatasetAPI(URI, user, password )
+#api = DatasetAPI(URI, user, password )
 	#print("Connected")
 	#print("Pushing data")
-r = api.attach_file_to_node(file=fileWritten, node_id=NODE, field='field_upload' )
+#r = api.attach_file_to_node(file=fileWritten, node_id=NODE, field='field_upload')
 #except:
 	#print('need this line')
 
@@ -571,7 +604,7 @@ r = api.attach_file_to_node(file=fileWritten, node_id=NODE, field='field_upload'
 
 #os.remove(fileWritten)
 
-cnxn.close()
-del cnxn
+#cnxn.close()
+#del cnxn
 
 
