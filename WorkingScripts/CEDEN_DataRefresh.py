@@ -1,22 +1,21 @@
 '''
 
 Author:
-	Andrew Dix Hill; https://github.com/AndrewDixHill/CEDEN_to_DataCAGov ; andrew.hill@waterboards.ca.gov
+	Andrew Dix Hill; https://github.com/AndrewDixHill ; andrew.hill@waterboards.ca.gov
 
 Agency:
 	California State Water Resource Control Board (SWRCB)
-	Office of Information Management and Analysis (OIMA)
 
 Purpose:
-	This script is intended to query, clean and calculate new fields for
-datasets from an internal SWRCB DataMart of CEDEN data. The original datasets contain
-non-ascii characters and restricted character such as tabs, feedlines, return lines, etc which
+	This script is intended to query, clean and calculate new fields for 5 different
+datasets from an internal SWRCB DataMart of CEDEN data. The original datasets contains
+non-ascii characters and restricted character such as tabs, feedlines, return lines which
 this script removes. This script also applies a data quality estimate to every record.
 This data quality estimate is calculated from a data quality decision tree found here XXXX.
 	In addition, this script subsets the newly created datasets into much smaller and more
-specialized data based on a list of analytes. Eventually this script will also publish each
-dataset to the open data water portal on data.ca.gov although this step is currently non-
-functional and under development.
+specialized data based on a list of analytes.
+	Eventually this script will also publish each dataset to the open data water portal
+on data.ca.gov although this step is currently in development.
 
 How to use this script:
 	From a powershell prompt (windows), call python and specify
@@ -39,7 +38,7 @@ import pyodbc
 import os, csv, re
 from dkan.client import DatasetAPI
 from datetime import datetime
-##### These are not currently in use as we have decided not to calculate RB values for each site
+##### These are not currently in use
 #import time
 #import json
 #import pandas as pd
@@ -172,11 +171,7 @@ if not For_IR:
 if For_IR:
 	# Below is the line to run the IR tables.
 	tables = {"WQX_Stations": "DM_WQX_Stations_MV", "IR_WaterChemistryData": "IR2018_WQ",
-	          "IR_ToxicityData": "IR2018_Toxicity", "IR_BenthicData": "IR2018_Benthic",
-	          "IR_STORET_2010": "IR2018_Storet_2010_2012", "IR_STORET_2012":
-	          "IR2018_Storet_2012_2017", "IR_NWIS": "IR2018_NWIS", "IR_Field":
-	          "IR2018_Field", "IR_TissueData": "IR2018_Tissue", }
-	#tables = {"WQX_Stations": "DM_WQX_Stations_MV", "IR_TissueData": "IR2018_Tissue", }
+	          "IR_ToxicityData": "IR2018_Toxicity", "IR_BenthicData": "IR2018_Benthic",  }
 
 ###########################################################################################################################
 #########################        Dictionaries for QA codes above		###############################################
@@ -260,13 +255,9 @@ def DictionaryFixer(Codes_Dict, filename ):
 		################# Rename #################
 		rename_Dict_Column(Codes_Dict_Alt, oldName="ResultQualCode", Newname="ResQualCode")
 		rename_Dict_Column(Codes_Dict_Alt, oldName="ProgramName", Newname="Program")
-		#Batch verification exists but should not be used for IR as of 1/25/2018
-		#rename_Dict_Column(Codes_Dict_Alt, oldName="BatchVerification", Newname="BatchVerificationCode")
+		rename_Dict_Column(Codes_Dict_Alt, oldName="BatchVerification", Newname="BatchVerificationCode")
 		################################## Delete #################
 		remove_Dict_Column(Codes_Dict_Alt, "ResultsReplicate")
-		# Batch verification exists but should not be used for IR as of 1/25/2018
-		remove_Dict_Column(Codes_Dict_Alt, "BatchVerification")
-
 
 	if filename == 'IR_BenthicData':
 		################# Rename #################
@@ -288,56 +279,6 @@ def DictionaryFixer(Codes_Dict, filename ):
 		################################## Delete #################
 		remove_Dict_Column(Codes_Dict_Alt, "BatchVerification")
 		remove_Dict_Column(Codes_Dict_Alt, "CollectionReplicate")
-
-	if filename == 'IR_STORET_2010':
-		################# Rename #################
-		rename_Dict_Column(Codes_Dict_Alt, oldName="Analyte", Newname="AnalyteName")
-		rename_Dict_Column(Codes_Dict_Alt, oldName="ResultQualCode", Newname="ResQualCode")
-		rename_Dict_Column(Codes_Dict_Alt, oldName="ResultsReplicate", Newname="Replicate")
-		################################## Delete #################
-		#  Batch verification exists but should not be used for IR as of 1/25/2018
-		remove_Dict_Column(Codes_Dict_Alt, "BatchVerification")
-		remove_Dict_Column(Codes_Dict_Alt, "CollectionReplicate")
-
-
-	if filename == 'IR_STORET_2012':
-		################# Rename #################
-		rename_Dict_Column(Codes_Dict_Alt, oldName="Analyte", Newname="AnalyteName")
-		rename_Dict_Column(Codes_Dict_Alt, oldName="ResultQualCode", Newname="ResQualCode")
-		rename_Dict_Column(Codes_Dict_Alt, oldName="ResultsReplicate", Newname="Replicate")
-		################################## Delete #################
-		#  Batch verification exists but should not be used for IR as of 1/25/2018
-		remove_Dict_Column(Codes_Dict_Alt, "BatchVerification")
-		remove_Dict_Column(Codes_Dict_Alt, "CollectionReplicate")
-
-	if filename == 'IR_NWIS':
-		################# Rename #################
-		rename_Dict_Column(Codes_Dict_Alt, oldName="Analyte", Newname="AnalyteName")
-		rename_Dict_Column(Codes_Dict_Alt, oldName="ResultQualCode", Newname="ResQualCode")
-		rename_Dict_Column(Codes_Dict_Alt, oldName="ResultsReplicate", Newname="Replicate")
-		################################## Delete #################
-		#  Batch verification exists but should not be used for IR as of 1/25/2018
-		remove_Dict_Column(Codes_Dict_Alt, "BatchVerification")
-		remove_Dict_Column(Codes_Dict_Alt, "CollectionReplicate")
-
-	if filename == 'IR_Field':
-		################# Rename #################
-		rename_Dict_Column(Codes_Dict_Alt, oldName="ResultQualCode", Newname="ResQualCode")
-		rename_Dict_Column(Codes_Dict_Alt, oldName="ResultsReplicate", Newname="ResultReplicate")
-		# IR_Field has Analyte and AnalyteName columns
-		Codes_Dict_Alt["AnalyteName"] = Codes_Dict_Alt["Analyte"]
-		################################## Delete #################
-		#  Batch verification exists but should not be used for IR as of 1/25/2018
-		remove_Dict_Column(Codes_Dict_Alt, "BatchVerification")
-
-	if filename == 'IR_TissueData':
-		################# Rename #################
-		rename_Dict_Column(Codes_Dict_Alt, oldName="ResultQualCode", Newname="ResQualCode")
-		rename_Dict_Column(Codes_Dict_Alt, oldName="ResultsReplicate", Newname="ResultReplicate")
-		rename_Dict_Column(Codes_Dict_Alt, oldName="MatrixName", Newname="Matrix")
-		################################## Delete #################
-		#  Batch verification exists but should not be used for IR as of 1/25/2018
-		remove_Dict_Column(Codes_Dict_Alt, "BatchVerification")
 
 	return Codes_Dict_Alt
 ###########################################################################################################################
@@ -451,7 +392,7 @@ def data_retrieval(tables, StartYear, EndYear, saveLocation, sep, extension):
 									DQ += [0]
 							elif codeCol == 'ResultQualCode' or codeCol == 'ResQualCode':
 								for codeVal in [newDict[codeCol]]:
-									if table == 'IR2018_WQ' or table == 'IR2018_Tissue' and codeVal == 'DNQ':
+									if table == 'IR2018_WQ' and codeVal == 'DNQ':
 										yearTest = int(newDict['SampleDate'][-4:])
 										if isinstance(yearTest, int) and yearTest < 2008:
 											print("This year was changed: %d" % yearTest)
@@ -673,40 +614,10 @@ if __name__ == "__main__":
 		print("\t\tFinished writing data subset for Pesticides\n\n")
 		############## Subsets of datasets for Pesticides
 
-	if For_IR:
-		RB = list(range(1, 10)) + ['']
-		for IR_file in FILES[1:]:
-			for Region in RB:
-				path, fileName = os.path.split(IR_file)
-				file_parts = os.path.splitext(fileName)
-				if file_parts[0] == 'IR_STORET_2010' or file_parts[0] == 'IR_STORET_2012' or file_parts[0] == 'IR_NWIS':
-					continue
-				# add a check and create folder called By_RB
-				if Region == '':
-					newFileName = 'By_RB\\' + file_parts[0] + '_RB_NR' + file_parts[1]
-				else:
-					newFileName = 'By_RB\\' + file_parts[0] + '_RB_' + str(Region) + file_parts[1]
-				if file_parts[0] == 'IR_ToxicityData' or file_parts[0] == 'IR_Field':
-					column_filter = 'RegionalBoard'
-				else:
-					column_filter = 'RegionalBoardID'
-				analytes = [str(Region), ]
-				selectByAnalyte(path=path, fileName=fileName, newFileName=newFileName, analytes=analytes, field_filter=column_filter, sep=sep)
-				print('Completed %s' % newFileName)
-
-#for testing purposes only should be deleted soon.
-#FILES = ['C:\\Users\\AHill\\Documents\\CEDEN_DataMart\\WQX_Stations.txt',
-#         'C:\\Users\\AHill\\Documents\\CEDEN_DataMart\\IR_ToxicityData.txt',
-#         'C:\\Users\\AHill\\Documents\\CEDEN_DataMart\\IR_Field.txt',
-#         'C:\\Users\\AHill\\Documents\\CEDEN_DataMart\\IR_NWIS.txt',
-#         'C:\\Users\\AHill\\Documents\\CEDEN_DataMart\\IR_STORET_2010.txt',
-#         'C:\\Users\\AHill\\Documents\\CEDEN_DataMart\\IR_STORET_2012.txt',
-#         'C:\\Users\\AHill\\Documents\\CEDEN_DataMart\\IR_BenthicData.txt',
-#         'C:\\Users\\AHill\\Documents\\CEDEN_DataMart\\IR_TissueData.txt'
-#         'C:\\Users\\AHill\\Documents\\CEDEN_DataMart\\IR_WaterChemistryData.txt', ]
 
 
-		###################################################################################################
+
+###################################################################################################
 #################################        Push data to data.ca.gov 		############################################
 ###################################################################################################
 # NODE Testing
