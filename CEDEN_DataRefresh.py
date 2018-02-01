@@ -87,14 +87,13 @@ def DictionaryFixer(Codes_Dict, filename ):
 	if filename == 'WQX_Stations':
 		################################## Delete #################
 		remove_Dict_Column(Codes_Dict_Alt, "Analyte")
-		remove_Dict_Column(Codes_Dict_Alt, "Analyte")
 		remove_Dict_Column(Codes_Dict_Alt, "Result")
 		remove_Dict_Column(Codes_Dict_Alt, "MatrixName")
 		remove_Dict_Column(Codes_Dict_Alt, "ResultsReplicate")
 		remove_Dict_Column(Codes_Dict_Alt, "QACode")
 		remove_Dict_Column(Codes_Dict_Alt, "BatchVerification")
 		remove_Dict_Column(Codes_Dict_Alt, "ResultQualCode")
-		remove_Dict_Column(Codes_Dict_Alt, "TargetLatitude")
+		remove_Dict_Column(Codes_Dict_Alt, "Latitude")
 		remove_Dict_Column(Codes_Dict_Alt, "SampleTypeCode")
 		remove_Dict_Column(Codes_Dict_Alt, "SampleDate")
 		remove_Dict_Column(Codes_Dict_Alt, "ProgramName")
@@ -110,7 +109,7 @@ def DictionaryFixer(Codes_Dict, filename ):
 		remove_Dict_Column(Codes_Dict_Alt, "ResultsReplicate")
 		remove_Dict_Column(Codes_Dict_Alt, "QACode")
 		remove_Dict_Column(Codes_Dict_Alt, "BatchVerification")
-		remove_Dict_Column(Codes_Dict_Alt, "Spatial_Datum")
+		remove_Dict_Column(Codes_Dict_Alt, "Datum")
 	if filename == 'TissueData':
 		################# Rename #################
 		rename_Dict_Column(Codes_Dict_Alt, oldName="MatrixName", Newname="Matrix")
@@ -133,6 +132,15 @@ def DictionaryFixer(Codes_Dict, filename ):
 		remove_Dict_Column(Codes_Dict_Alt, "ResultsReplicate")
 		remove_Dict_Column(Codes_Dict_Alt, "Result")
 		remove_Dict_Column(Codes_Dict_Alt, "BatchVerification")
+	if filename == 'CyanoToxinData':
+		################# Rename #################
+		rename_Dict_Column(Codes_Dict_Alt, oldName="BatchVerification", Newname='BatchVerificationCode')
+		rename_Dict_Column(Codes_Dict_Alt, oldName="ResultQualCode", Newname="ResQualCode")
+		rename_Dict_Column(Codes_Dict_Alt, oldName="ResultsReplicate", Newname="Replicate")
+		rename_Dict_Column(Codes_Dict_Alt, oldName="Analyte", Newname="AnalyteName")
+		################################## Delete #################
+		remove_Dict_Column(Codes_Dict_Alt, "ProgramName")
+		remove_Dict_Column(Codes_Dict_Alt, "CollectionReplicate")
 	if filename == 'IR_ToxicityData':
 		################# Rename #################
 		rename_Dict_Column(Codes_Dict_Alt, oldName="ResultQualCode", Newname="ResQualCode")
@@ -143,7 +151,7 @@ def DictionaryFixer(Codes_Dict, filename ):
 		remove_Dict_Column(Codes_Dict_Alt, "ResultsReplicate")
 		# Batch verification exists but should not be used for IR as of 1/25/2018
 		remove_Dict_Column(Codes_Dict_Alt, "BatchVerification")
-		remove_Dict_Column(Codes_Dict_Alt, "Spatial_Datum")
+		remove_Dict_Column(Codes_Dict_Alt, "Datum")
 	if filename == 'IR_BenthicData':
 		################# Rename #################
 		rename_Dict_Column(Codes_Dict_Alt, oldName="ResultQualCode", Newname="ResQualCode")
@@ -155,7 +163,7 @@ def DictionaryFixer(Codes_Dict, filename ):
 		remove_Dict_Column(Codes_Dict_Alt, "ResultsReplicate")
 		remove_Dict_Column(Codes_Dict_Alt, "QACode")
 		remove_Dict_Column(Codes_Dict_Alt, "BatchVerification")
-		remove_Dict_Column(Codes_Dict_Alt, "Spatial_Datum")
+		remove_Dict_Column(Codes_Dict_Alt, "Datum")
 	if filename == 'IR_WaterChemistryData':
 		################# Rename #################
 		rename_Dict_Column(Codes_Dict_Alt, oldName="ResultQualCode", Newname="ResQualCode")
@@ -164,7 +172,7 @@ def DictionaryFixer(Codes_Dict, filename ):
 		################################## Delete #################
 		remove_Dict_Column(Codes_Dict_Alt, "BatchVerification")
 		remove_Dict_Column(Codes_Dict_Alt, "CollectionReplicate")
-		remove_Dict_Column(Codes_Dict_Alt, "Spatial_Datum")
+		remove_Dict_Column(Codes_Dict_Alt, "Datum")
 	if filename == 'IR_STORET_2010':
 		################# Rename #################
 		rename_Dict_Column(Codes_Dict_Alt, oldName="Analyte", Newname="AnalyteName")
@@ -174,7 +182,7 @@ def DictionaryFixer(Codes_Dict, filename ):
 		#  Batch verification exists but should not be used for IR as of 1/25/2018
 		remove_Dict_Column(Codes_Dict_Alt, "BatchVerification")
 		remove_Dict_Column(Codes_Dict_Alt, "CollectionReplicate")
-		remove_Dict_Column(Codes_Dict_Alt, "Spatial_Datum")
+		remove_Dict_Column(Codes_Dict_Alt, "Datum")
 	if filename == 'IR_STORET_2012':
 		################# Rename #################
 		rename_Dict_Column(Codes_Dict_Alt, oldName="Analyte", Newname="AnalyteName")
@@ -184,7 +192,7 @@ def DictionaryFixer(Codes_Dict, filename ):
 		#  Batch verification exists but should not be used for IR as of 1/25/2018
 		remove_Dict_Column(Codes_Dict_Alt, "BatchVerification")
 		remove_Dict_Column(Codes_Dict_Alt, "CollectionReplicate")
-		remove_Dict_Column(Codes_Dict_Alt, "Spatial_Datum")
+		remove_Dict_Column(Codes_Dict_Alt, "Datum")
 	if filename == 'IR_NWIS':
 		################# Rename #################
 		rename_Dict_Column(Codes_Dict_Alt, oldName="Analyte", Newname="AnalyteName")
@@ -194,7 +202,7 @@ def DictionaryFixer(Codes_Dict, filename ):
 		#  Batch verification exists but should not be used for IR as of 1/25/2018
 		remove_Dict_Column(Codes_Dict_Alt, "BatchVerification")
 		remove_Dict_Column(Codes_Dict_Alt, "CollectionReplicate")
-		remove_Dict_Column(Codes_Dict_Alt, "Spatial_Datum")
+		remove_Dict_Column(Codes_Dict_Alt, "Datum")
 	if filename == 'IR_Field':
 		################# Rename #################
 		rename_Dict_Column(Codes_Dict_Alt, oldName="ResultQualCode", Newname="ResQualCode")
@@ -204,7 +212,7 @@ def DictionaryFixer(Codes_Dict, filename ):
 		################################## Delete #################
 		#  Batch verification exists but should not be used for IR as of 1/25/2018
 		remove_Dict_Column(Codes_Dict_Alt, "BatchVerification")
-		remove_Dict_Column(Codes_Dict_Alt, "Spatial_Datum")
+		remove_Dict_Column(Codes_Dict_Alt, "Datum")
 	if filename == 'IR_TissueData':
 		################# Rename #################
 		rename_Dict_Column(Codes_Dict_Alt, oldName="ResultQualCode", Newname="ResQualCode")
@@ -213,7 +221,7 @@ def DictionaryFixer(Codes_Dict, filename ):
 		################################## Delete #################
 		#  Batch verification exists but should not be used for IR as of 1/25/2018
 		remove_Dict_Column(Codes_Dict_Alt, "BatchVerification")
-		remove_Dict_Column(Codes_Dict_Alt, "Spatial_Datum")
+		remove_Dict_Column(Codes_Dict_Alt, "Datum")
 	return Codes_Dict_Alt
 ###########################################################################################################################
 #########################        Dictionary of code fixer 	above	###########################
@@ -221,7 +229,7 @@ def DictionaryFixer(Codes_Dict, filename ):
 
 # data_retrieval is the meat of this script. It takes the tables dictionary defined above, two dates (specified
 # below), and a save location for the output files.
-def data_retrieval(tables, StartYear, EndYear, saveLocation, sep, extension):
+def data_retrieval(tables, StartYear, EndYear, saveLocation, sep, extension, For_IR):
 	# initialize writtenFiles where we will store the output complete file paths in list format.
 	writtenFiles = {}
 	try:
@@ -237,6 +245,7 @@ def data_retrieval(tables, StartYear, EndYear, saveLocation, sep, extension):
 		      "right password and Server id. Check internet "
 		      "connection." % SERVER1)
 	# This loop iterates on every item in the tables list.
+	AllSites = {}
 	for count, (filename, table) in enumerate(tables.items()):
 		writtenFiles[filename] = os.path.join(saveLocation, '%s.%s' % (filename, extension))
 		if count == 0:
@@ -246,11 +255,11 @@ def data_retrieval(tables, StartYear, EndYear, saveLocation, sep, extension):
 		##############################################################################
 		# The DM_WQX_Stations_MV table should not be filtered by date but the significant difference between this
 		# table and the others is that we are not calculating new fields a do not have to add columns. Also,
-		# benthic dataset does not need the Spatial_Datum column
+		# benthic dataset does not need the Datum column
 		if table == 'DM_WQX_Stations_MV':
 			sql = "SELECT * FROM %s ;" % table
 			cursor.execute(sql)
-			columns = [desc[0] for desc in cursor.description]
+			columns = [desc[0].replace('TargetL', 'L') for desc in cursor.description]
 		else:
 			sql = "SELECT * FROM %s WHERE (SampleDate BETWEEN " % table + \
 		      "CONVERT(datetime, '%d-01-01') " % StartYear + \
@@ -259,12 +268,12 @@ def data_retrieval(tables, StartYear, EndYear, saveLocation, sep, extension):
 			#  This is where we could change the order of all the columns.... don't forget to write them in the same
 			# order
 			if For_IR or filename == 'BenthicData':
-				columns = [desc[0] for desc in cursor.description]\
+				columns = [desc[0].replace('TargetL', 'L') for desc in cursor.description]\
 				          + ['DataQuality'] + ['DataQualityIndicator']
 			else:
-				columns = [desc[0] for desc in cursor.description] \
+				columns = [desc[0].replace('TargetL', 'L') for desc in cursor.description] \
 				          + ['DataQuality'] + ['DataQualityIndicator'] \
-				          + ['Spatial_Datum']
+				          + ['Datum']
 		##############################################################################
 		########################## SQL Statement  ####################################
 		##############################################################################
@@ -274,17 +283,17 @@ def data_retrieval(tables, StartYear, EndYear, saveLocation, sep, extension):
 		#  the WQX stations. If the script has already processed past WQX_Stations (count>0) then we read in the file
 		#  for accessing the datum associated with the station codes.
 		if count > 0 and not For_IR:
-			with open(WQXfile, 'r', newline='', encoding='utf8') as WQX_sites:
+			with open(WQXfile, 'r', newline='', encoding='utf8') as WQX_sites_reader:
 				WQX_Sites = {}
 				SitesCounter = 0
-				reader = csv.reader(WQX_sites, delimiter=sep, lineterminator='\n')
+				reader = csv.reader(WQX_sites_reader, delimiter=sep, lineterminator='\n')
 				for row in reader:
 					if SitesCounter == 0:
 						Sitecolumns = row
 						SitesCounter += 1
 					SiterowDict = dict(zip(Sitecolumns, row))
 					WQX_Sites[SiterowDict['StationCode']] = SiterowDict['Datum']
-		if 1 == 1:
+		if count == count:  ### Change back to  1 == 1:
 			with open(writtenFiles[filename], 'w', newline='', encoding='utf8') as csvfile:
 				dw = csv.DictWriter(csvfile, fieldnames=columns, delimiter=sep, lineterminator='\n')
 				dw.writeheader()
@@ -292,27 +301,46 @@ def data_retrieval(tables, StartYear, EndYear, saveLocation, sep, extension):
 				##########################
 				if table == 'DM_WQX_Stations_MV':
 					for row in cursor:
+						row = [str(word).replace('None', '') for word in row]
 						filtered = [decodeAndStrip(t) for t in list(row)]
 						newDict = dict(zip(columns, filtered))
+						try:
+							long = float(newDict['Longitude'])
+							if long > 0:
+								newDict['Longitude'] = -long
+						except ValueError:
+							pass
 						writer.writerow(list(newDict.values()))
 				else:
+					Codes_Dict_Alt = DictionaryFixer(Codes_Dict, filename)
 					for row in cursor:
-						filtered = [decodeAndStrip(t) for t in list(row)]
+						filtered = [decodeAndStrip(t).replace('None', '') for t in list(row)]
 						if For_IR or filename == 'BenthicData':
 							newDict = dict(zip(columns, filtered + [''] + ['']))
+							try:
+								long = float(newDict['Longitude'])
+								if long > 0:
+									newDict['Longitude'] = -long
+							except ValueError:
+								pass
 						else:
 							newDict = dict(zip(columns, filtered + [''] + [''] + ['']))
+							try:
+								long = float(newDict['Longitude'])
+								if long > 0:
+									newDict['Longitude'] = -long
+							except ValueError:
+								pass
 						DQ = []
 						QInd = ''
-						Codes_Dict_Alt = DictionaryFixer(Codes_Dict, filename)
 						#####  IR and Benthic datasets do not need datum added  #####
 						if For_IR or filename == 'BenthicData':
 							pass
 						else:
 							try:
-								newDict['Spatial_Datum'] = WQX_Sites[newDict['StationCode']]
+								newDict['Datum'] = WQX_Sites[newDict['StationCode']]
 							except KeyError:
-								newDict['Spatial_Datum'] = 'NR'
+								newDict['Datum'] = 'NR'
 						#####  ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^  #####
 						for codeCol in list(Codes_Dict_Alt):
 							if codeCol == 'QACode':
@@ -352,7 +380,11 @@ def data_retrieval(tables, StartYear, EndYear, saveLocation, sep, extension):
 								for codeVal in [newDict[codeCol]]:
 									if codeVal in list(Codes_Dict_Alt[codeCol]):
 										DQ += [Codes_Dict_Alt[codeCol][codeVal]]
-						MaxDQ = max(DQ)
+						try:
+							MaxDQ = max(DQ)
+						except ValueError:
+							MaxDQ = 7
+							DQ += [7, ]
 						for codeCol in list(Codes_Dict_Alt):
 							if codeCol == 'QACode':
 								for codeVal in newDict[codeCol].split(','):
@@ -386,30 +418,49 @@ def data_retrieval(tables, StartYear, EndYear, saveLocation, sep, extension):
 							newDict['DataQuality'] = DQ_Codes[MaxDQ]
 							newDict['DataQualityIndicator'] = QInd
 						writer.writerow(list(newDict.values()))
+						if newDict['StationCode'] not in AllSites:
+							AllSites[newDict['StationCode']] = [newDict['StationName'], newDict['Latitude'],
+							                                    newDict[ 'Longitude'], newDict['Datum'], ]
 				print("Finished data retrieval for the %s table" % table)
-	return writtenFiles
+	return writtenFiles, AllSites
 
 ####################################################################################
 ############################# Select By Analyte Subset #############################
 ####################################################################################
-def selectByAnalyte(path, fileName, analytes, newFileName, field_filter, sep):
+def selectByAnalyte(path, fileName, analytes, newFileName, field_filter, sep, For_IR=False):
 	file = os.path.join(path, fileName)
 	fileOut = os.path.join(path, newFileName)
+	Analyte_Sites = {}
 	columns = []
 	with open(file, 'r', newline='', encoding='utf8') as txtfile:
 		reader = csv.reader(txtfile, delimiter=sep, lineterminator='\n')
 		with open(fileOut, 'w', newline='', encoding='utf8') as txtfileOut:
-			writer = csv.writer(txtfileOut, csv.QUOTE_NONE, delimiter=sep, lineterminator='\n')
+			writer = csv.writer(txtfileOut, csv.QUOTE_MINIMAL, delimiter=sep, lineterminator='\n')
 			count = 0
 			for row in reader:
+				row = [str(word).replace('None', '') for word in row]
 				if count == 0:
 					columns = row
 					writer.writerow(row)
 					count += 1
 					continue
 				rowDict = dict(zip(columns, row))
+				#print(rowDict)
 				if rowDict[field_filter] in analytes:
 					writer.writerow(row)
+					if rowDict['StationCode'] not in Analyte_Sites:
+						Analyte_Sites[rowDict['StationCode']] = [rowDict['StationName'], rowDict['Latitude'],
+						                                         rowDict['Longitude'], rowDict['Datum']]
+	if not For_IR:
+		Sites = os.path.join(path, 'Sites_for_' + newFileName)
+		with open(Sites, 'w', newline='', encoding='utf8') as Sites_Out:
+			Sites_writer = csv.writer(Sites_Out, csv.QUOTE_MINIMAL, delimiter=sep, lineterminator='\n')
+			AllSites_dw = csv.DictWriter(Sites_Out, fieldnames=['StationName', 'SiteCode', 'Latitude', 'Longitude',
+			                                                    'Datum'], delimiter=sep, lineterminator='\n')
+			AllSites_dw.writeheader()
+			for key, value in Analyte_Sites.items():
+				Sites_writer.writerow([value[0], key, value[1], value[2], value[3]])
+
 				####################################################################################
 				############################# Select By Analyte Subset #############################
 				####################################################################################
@@ -421,14 +472,18 @@ def selectByAnalyte(path, fileName, analytes, newFileName, field_filter, sep):
 
 # Necessary variables imported from user's environmental variables.
 if __name__ == "__main__":
+	# Is this to be run for IR?
+	For_IR = False
 	#  This is the filter that every cell in each dataset gets passed through. From the "string" library, we are only
 	# allowing printable characters except pipes, quotes, tabs, returns, control breaks, etc.
 	printable = set(string.printable) - set('|"\'`\t\r\n\f\v')
-	# Is this to be run for IR?
-	For_IR = False
 	# What type of delimiter should files have? "|" or "\t" are common
-	sep = '|'
-	extension = 'csv'
+	if not For_IR:
+		sep = '|'
+		extension = '.csv'
+	else:
+		sep = '\t'
+		extension = '.txt'
 	print('\n\n\n\n')
 	# This is the SWRCB internal server set as a local environmental variable for the user.
 	# Save the server address to the SERVER1 environmental variable for your account.
@@ -484,11 +539,11 @@ if __name__ == "__main__":
 	                              "VLC:VQI": 4, "VLF": 1, "VMD": 2, "VQI": 4, "VQI:VTC": 4, "VQN": 4, "VR": 6, "VTC": 2}
 	ResultQualCode_list = {"/oC": 6, "<": 1, "<=": 1, "=": 1, ">": 1, ">=": 1, "A": 1, "CG": 6, "COL": 1, "DNQ": 1,
 	                       "JF": 1, "NA": 6, "ND": 1, "NR": 6, "NRS": 6, "NRT": 6, "NSI": 1, "P": 1, "PA": 1, "w/C": 6,
-	                       "": 1, }
-	TargetLatitude_list = {"-88": 6, "": 6, }
+	                       "": 1, "Systematic Contamination": 4, }
+	Latitude_list = {"-88": 0, "": 6, }
 	Result_list = {"": 1, }
 	StationCode_list = {"LABQA": 0, "LABQA_SWAMP": 0, "000NONPJ": 0, "FIELDQA": 0, "Non Project QA Sample": 0,
-	                    "Laboratory QA Sample": 0, "Field QA sample": 0, }
+	                    "Laboratory QA Sample": 0, "Field QA sample": 0, "FIELDQA SWAMP": 0, }
 	SampleTypeCode_list = {"LabBlank": 0, "CompBLDup": 0, "LCS": 0, "CRM": 0, "FieldBLDup_Grab": 0, "FieldBLDup_Int": 0,
 	                       "FieldBLDup": 0, "FieldBlank": 0, "TravelBlank": 0, "EquipBlank": 0, "DLBlank": 0,
 	                       "FilterBlank": 0, "MS1": 0, "MS2": 0, "MS3": 0, "MSBLDup": 0, }
@@ -498,17 +553,17 @@ if __name__ == "__main__":
 	MatrixName_list = {"blankwater": 0, "Blankwater": 0, "labwater": 0, "blankmatrix": 0, }
 	CollectionReplicate_list = {"0": 1, "1": 1, "2": 0, "3": 0, "4": 0, "5": 0, "6": 0, "7": 0, "8": 0, }
 	ResultsReplicate_list = {"0": 1, "1": 1, "2": 0, "3": 0, "4": 0, "5": 0, "6": 0, "7": 0, "8": 0, }
-	Spatial_Datum_list = {"NR": 3, }
+	Datum_list = {"NR": 3, }
 	DQ_Codes = {0: "MetaData, QC record", 1: "Passed QC", 2: "Some review needed", 3: "Spatial Accuracy Unknown",
-	            4: "Extensive review needed", 5: "Unknown data quality", 6: "Reject record", }
+	            4: "Extensive review needed", 5: "Unknown data quality", 6: "Reject record", 7: 'Error'}
 	# the Codes_Dict variable is a dictionary template for each dataset. Some datasets do not have all of these columns
 	# and as such have to be removed with the DictionaryFixer definition below.
 	Codes_Dict = {"QACode": QA_Code_list, "BatchVerification": BatchVerificationCode_list,
-	              "ResultQualCode": ResultQualCode_list, "TargetLatitude": TargetLatitude_list, "Result": Result_list,
+	              "ResultQualCode": ResultQualCode_list, "Latitude": Latitude_list, "Result": Result_list,
 	              "StationCode": StationCode_list, "SampleTypeCode": SampleTypeCode_list, "SampleDate": SampleDate_list,
 	              "ProgramName": ProgramName_list, "Analyte": Analyte_list, "MatrixName": MatrixName_list,
 	              "CollectionReplicate": CollectionReplicate_list, "ResultsReplicate": ResultsReplicate_list,
-	              "Spatial_Datum": Spatial_Datum_list, }
+	              "Datum": Datum_list, }
 	# This is a Python dictionary of filenames and their Datamart names. This can be expanded by adding to the end of
 	#  the list. The FIRST key in this dictionary MUST be WQX_Stations. If For_IR is set to False, it will complete the
 	# normal weekly 5 tables. If For_IR is set to True, this script will complete the IR tables.
@@ -516,7 +571,7 @@ if __name__ == "__main__":
 	if not For_IR:
 		tables = {"WQX_Stations": "DM_WQX_Stations_MV", "WaterChemistryData": "WQDMart_MV",
 		          "ToxicityData": "ToxDmart_MV", "TissueData": "TissueDMart_MV", "BenthicData": "BenthicDMart_MV",
-		          "HabitatData": "HabitatDMart_MV", }
+		          "HabitatData": "HabitatDMart_MV", } #  "CyanoToxinData": "CyanotoxinsWQ_MV", }
 	if For_IR:
 		# Below is the line to run the IR tables.
 		tables = {"IR_WaterChemistryData": "IR2018_WQ",
@@ -529,8 +584,21 @@ if __name__ == "__main__":
 
 	startTime = datetime.now()
 	# This line runs the functions defined above.
-	FILES = data_retrieval(tables, StartYear, EndYear, saveLocation, sep=sep, extension=extension)
+	FILES, AllSites = data_retrieval(tables, StartYear,
+	                                 EndYear, saveLocation, sep=sep, extension=extension, For_IR=For_IR)
 	print("\n\n\t\tCompleted data retrieval and processing\n\t\t\tfrom internal DataMart\n\n")
+	# write out the All sites variable... This includes all sites in the Chemistry, benthic, toxicity, tissue and
+	# habitat datasets.
+	if not For_IR:
+		AllSites_path = os.path.join(saveLocation, 'All_CEDEN_Sites.csv')
+		with open(AllSites_path, 'w', newline='', encoding='utf8') as AllSites_csv_file:
+			AllSites_dw = csv.DictWriter(AllSites_csv_file,
+			                             fieldnames=['SiteCode', 'Latitude', 'Longitude',
+			                                         'Datum', ], delimiter=sep, lineterminator='\n')
+			AllSites_dw.writeheader()
+			AllSites_writer = csv.writer(AllSites_csv_file, csv.QUOTE_MINIMAL, delimiter=sep, lineterminator='\n')
+			for key, value in AllSites.items():
+				AllSites_writer.writerow([key, value[0], value[1], value[2], ])
 	totalTime = datetime.now() - startTime
 	seconds = totalTime.seconds
 	minutes = seconds // 60
@@ -544,16 +612,34 @@ if __name__ == "__main__":
 	# FILES["BenthicData"]
 	# FILES["HabitatData"]
 	# use FILES["TableKey"] to subset future datasets, as in example below...
+
+
+
 	############## Subsets of datasets Safe To Swim
-	print("\nStarting data subset for Safe to Swim...")
 	if not For_IR:
+		print("\nStarting data subset for Cyanotoxins....")
+		analytes = ["Anatoxin-A", "Cylindrospermopsin", "Desmethyl-LR", "Desmethyl-RR", "Lyngbyatoxin-a",
+		            "Microcystin-LA", "Microcystin-LF", "Microcystin-LR", "Microcystin-LW", "Microcystin-LY",
+		            "Microcystin-RR", "Microcystins, Total", "Microcystin-YR", "Nodularin", "Saxitoxins", ]
+		WaterChem = FILES["WaterChemistryData"]
+		path, fileName = os.path.split(WaterChem)
+		newFileName = 'CyanoToxins' + extension
+		column_filter = 'DW_AnalyteName'
+		selectByAnalyte(path=path, fileName=fileName, newFileName=newFileName, analytes=analytes,
+		                field_filter=column_filter, sep=sep)
+		print("\t\tFinished writing data subset for CyanoToxins\n\n")
+		############## Subsets of datasets for Cyanotoxins
+
+		print("\nStarting data subset for Safe to Swim...")
 		WaterChem = FILES['WaterChemistryData']
 		path, fileName = os.path.split(WaterChem)
 		analytes = ['E. Coli', 'Enterococcus', 'Coliform, Total', 'Coliform, Fecal', ]
-		newFileName = 'SafeToSwim.csv'
+		newFileName = 'SafeToSwim' + extension
 		column_filter = 'Analyte'
 		selectByAnalyte(path=path, fileName=fileName, newFileName=newFileName, analytes=analytes,
 		                field_filter=column_filter, sep=sep)
+		SafeToSwim_Sites = 'SafeToSwim_Sites'  +'.' + extension
+
 		print("\t\tFinished writing data subset for Safe to Swim\n\n")
 		############## Subsets of datasets Safe To Swim
 		############## Subsets of datasets for Pesticides
@@ -566,72 +652,77 @@ if __name__ == "__main__":
 		            "Carbendazim", "Carbofuran", "Carbophenothion", "Carfentrazone Ethyl", "Chlorantraniliprole",
 		            "Chlordane", "Chlordane, cis-", "Chlordane, cis-, Particulate", "Chlordane, Technical",
 		            "Chlordane, trans-", "Chlordane, trans-, Particulate", "Chlordene, cis-", "Chlordene, trans-",
-		            "Chlorfenapyr", "Chlorfenvinphos", "Chlorobenzilate", "Chlorothalonil", "Chlorpropham", "Chlorpyrifos",
-		            "Chlorpyrifos Methyl", "Chlorpyrifos Methyl, Particulate", "Chlorpyrifos Methyl/Fenchlorphos",
-		            "Chlorpyrifos, Particulate", "Cinerin-2", "Ciodrin", "Clomazone", "Clothianidin", "Coumaphos",
-		            "Cyanazine", "Cyantraniliprole", "Cycloate", "Cyfluthrin", "Cyfluthrin, beta-", "Cyfluthrin-1",
-		            "Cyfluthrin-2", "Cyfluthrin-3", "Cyfluthrin-4", "Cyhalofop-butyl", "Cyhalothrin", "Cyhalothrin lambda-",
-		            "Cyhalothrin, gamma-", "Cyhalothrin, lambda-1", "Cyhalothrin, lambda-2", "Cypermethrin",
-		            "Cypermethrin-1", "Cypermethrin-2", "Cypermethrin-3", "Cypermethrin-4", "Cyprodinil", "Dacthal",
+		            "Chlorfenapyr", "Chlorfenvinphos", "Chlorobenzilate", "Chlorothalonil", "Chlorpropham",
+		            "Chlorpyrifos", "Chlorpyrifos Methyl", "Chlorpyrifos Methyl, Particulate",
+		            "Chlorpyrifos Methyl/Fenchlorphos", "Chlorpyrifos, Particulate", "Cinerin-2", "Ciodrin",
+		            "Clomazone", "Clothianidin", "Coumaphos", "Cyanazine", "Cyantraniliprole", "Cycloate", "Cyfluthrin",
+		            "Cyfluthrin, beta-", "Cyfluthrin-1", "Cyfluthrin-2", "Cyfluthrin-3", "Cyfluthrin-4",
+		            "Cyhalofop-butyl", "Cyhalothrin", "Cyhalothrin lambda-", "Cyhalothrin, gamma-",
+		            "Cyhalothrin, lambda-1", "Cyhalothrin, lambda-2", "Cypermethrin", "Cypermethrin-1",
+		            "Cypermethrin-2", "Cypermethrin-3", "Cypermethrin-4", "Cyprodinil", "Dacthal",
 		            "Dacthal, Particulate", "DCBP(p,p')", "DDD(o,p')", "DDD(o,p'), Particulate", "DDD(p,p')",
-		            "DDD(p,p'), Particulate", "DDE(o,p')", "DDE(o,p'), Particulate", "DDE(p,p')", "DDE(p,p'), Particulate",
-		            "DDMU(p,p')", "DDMU(p,p'), Particulate", "DDT(o,p')", "DDT(o,p'), Particulate", "DDT(p,p')",
-		            "DDT(p,p'), Particulate", "Deltamethrin", "Deltamethrin/Tralomethrin", "Demeton", "Demeton-O",
-		            "Demeton-s", "Desethyl-Atrazine", "Desisopropyl-Atrazine", "Diazinon", "Diazinon, Particulate",
-		            "Dichlofenthion", "Dichlone", "Dichloroaniline, 3,5-", "Dichlorobenzenamine, 3,4-",
-		            "Dichlorophenyl Urea, 3,4-", "Dichlorophenyl-3-methyl Urea, 3,4-", "Dichlorvos", "Dichrotophos",
-		            "Dicofol", "Dicrotophos", "Dieldrin", "Dieldrin, Particulate", "Diflubenzuron", "Dimethoate",
-		            "Dioxathion", "Diphenamid", "Diphenylamine", "Diquat", "Disulfoton", "Dithiopyr", "Diuron",
-		            "Endosulfan I", "Endosulfan I, Particulate", "Endosulfan II", "Endosulfan II, Particulate",
-		            "Endosulfan Sulfate", "Endosulfan Sulfate, Particulate", "Endrin", "Endrin Aldehyde", "Endrin Ketone",
+		            "DDD(p,p'), Particulate", "DDE(o,p')", "DDE(o,p'), Particulate", "DDE(p,p')",
+		            "DDE(p,p'), Particulate", "DDMU(p,p')", "DDMU(p,p'), Particulate", "DDT(o,p')",
+		            "DDT(o,p'), Particulate", "DDT(p,p')", "DDT(p,p'), Particulate", "Deltamethrin",
+		            "Deltamethrin/Tralomethrin", "Demeton", "Demeton-O", "Demeton-s", "Desethyl-Atrazine",
+		            "Desisopropyl-Atrazine", "Diazinon", "Diazinon, Particulate", "Dichlofenthion", "Dichlone",
+		            "Dichloroaniline, 3,5-", "Dichlorobenzenamine, 3,4-", "Dichlorophenyl Urea, 3,4-",
+		            "Dichlorophenyl-3-methyl Urea, 3,4-", "Dichlorvos", "Dichrotophos", "Dicofol", "Dicrotophos",
+		            "Dieldrin", "Dieldrin, Particulate", "Diflubenzuron", "Dimethoate", "Dioxathion", "Diphenamid",
+		            "Diphenylamine", "Diquat", "Disulfoton", "Dithiopyr", "Diuron", "Endosulfan I",
+		            "Endosulfan I, Particulate", "Endosulfan II", "Endosulfan II, Particulate", "Endosulfan Sulfate",
+		            "Endosulfan Sulfate, Particulate", "Endrin", "Endrin Aldehyde", "Endrin Ketone",
 		            "Endrin, Particulate", "EPN", "EPTC", "Esfenvalerate", "Esfenvalerate/Fenvalerate",
 		            "Esfenvalerate/Fenvalerate-1", "Esfenvalerate/Fenvalerate-2", "Ethafluralin", "Ethion", "Ethoprop",
-		            "Famphur", "Fenamiphos", "Fenchlorphos", "Fenhexamid", "Fenitrothion", "Fenpropathrin", "Fensulfothion",
-		            "Fenthion", "Fenuron", "Fenvalerate", "Fipronil", "Fipronil Amide", "Fipronil Desulfinyl",
-		            "Fipronil Desulfinyl Amide", "Fipronil Sulfide", "Fipronil Sulfone", "Flonicamid", "Fluometuron",
-		            "Fluridone", "Flusilazole", "Fluvalinate", "Fluxapyroxad", "Folpet", "Fonofos", "Glyphosate",
-		            "Halosulfuron Methyl", "HCH, alpha-", "HCH, alpha-, Particulate", "HCH, beta-",
-		            "HCH, beta-, Particulate", "HCH, delta-", "HCH, delta-, Particulate", "HCH, gamma-",
+		            "Famphur", "Fenamiphos", "Fenchlorphos", "Fenhexamid", "Fenitrothion", "Fenpropathrin",
+		            "Fensulfothion", "Fenthion", "Fenuron", "Fenvalerate", "Fipronil", "Fipronil Amide",
+		            "Fipronil Desulfinyl", "Fipronil Desulfinyl Amide", "Fipronil Sulfide", "Fipronil Sulfone",
+		            "Flonicamid", "Fluometuron", "Fluridone", "Flusilazole", "Fluvalinate", "Fluxapyroxad", "Folpet",
+		            "Fonofos", "Glyphosate", "Halosulfuron Methyl", "HCH, alpha-", "HCH, alpha-, Particulate",
+		            "HCH, beta-", "HCH, beta-, Particulate", "HCH, delta-", "HCH, delta-, Particulate", "HCH, gamma-",
 		            "HCH, gamma-, Particulate", "Heptachlor", "Heptachlor Epoxide", "Heptachlor Epoxide, Particulate",
 		            "Heptachlor Epoxide/Oxychlordane", "Heptachlor Epoxide/Oxychlordane, Particulate",
 		            "Heptachlor, Particulate", "Hexachlorobenzene", "Hexachlorobenzene, Particulate", "Hexazinone",
 		            "Hydroxyatrazine, 2-", "Hydroxycarbofuran, 3- ", "Hydroxypropanal, 3-", "Imazalil", "Indoxacarb",
 		            "Isofenphos", "Isoxaben", "Jasmolin-2", "Kepone", "Ketocarbofuran, 3-", "Leptophos", "Linuron",
 		            "Malathion", "Merphos", "Methamidophos", "Methidathion", "Methiocarb", "Methomyl", "Methoprene",
-		            "Methoxychlor", "Methoxychlor, Particulate", "Methoxyfenozide", "Methyl (3,4-dichlorophenyl)carbamate",
-		            "Mevinphos", "Mexacarbate", "Mirex", "Mirex, Particulate", "Molinate", "Monocrotophos", "Monuron",
-		            "Naled", "Neburon", "Nonachlor, cis-", "Nonachlor, cis-, Particulate", "Nonachlor, trans-",
-		            "Nonachlor, trans-, Particulate", "Norflurazon", "Oxadiazon", "Oxadiazon, Particulate", "Oxamyl",
-		            "Oxychlordane", "Oxychlordane, Particulate", "Oxyfluorfen", "Paraquat", "Parathion, Ethyl",
-		            "Parathion, Methyl", "PCNB", "Pebulate", "Pendimethalin", "Penoxsulam", "Permethrin",
-		            "Permethrin, cis-", "Permethrin, trans-", "Perthane", "Phenothrin", "Phorate", "Phosalone", "Phosmet",
-		            "Phosphamidon", "Piperonyl Butoxide", "Pirimiphos Methyl", "PrAllethrin", "Procymidone", "Profenofos",
-		            "Profluralin", "Prometon", "Prometryn", "Propachlor", "Propanil", "Propargite", "Propazine", "Propham",
-		            "Propoxur", "Pymetrozin", "Pyrethrin-2", "Pyrimethanil", "Quinoxyfen", "Resmethrin", "Safrotin",
-		            "Secbumeton", "Siduron", "Simazine", "Simetryn", "Sulfallate", "Sulfotep", "Tebuthiuron", "Tedion",
-		            "Terbufos", "Terbuthylazine", "Terbutryn", "Tetrachloro-m-xylene", "Tetrachlorvinphos",
-		            "Tetraethyl Pyrophosphate", "Tetramethrin", "T-Fluvalinate", "Thiamethoxam", "Thiobencarb", "Thionazin",
-		            "Tokuthion", "Total DDDs", "Total DDEs", "Total DDTs", "Total HCHs", "Total Pyrethrins", "Toxaphene",
-		            "Tralomethrin", "Tributyl Phosphorotrithioate, S,S,S-", "Trichlorfon", "Trichloronate", "Triclopyr",
-		            "Tridimephon", "Vinclozolin", ]
+		            "Methoxychlor", "Methoxychlor, Particulate", "Methoxyfenozide",
+		            "Methyl (3,4-dichlorophenyl)carbamate", "Mevinphos", "Mexacarbate", "Mirex", "Mirex, Particulate",
+		            "Molinate", "Monocrotophos", "Monuron", "Naled", "Neburon", "Nonachlor, cis-",
+		            "Nonachlor, cis-, Particulate", "Nonachlor, trans-", "Nonachlor, trans-, Particulate",
+		            "Norflurazon", "Oxadiazon", "Oxadiazon, Particulate", "Oxamyl", "Oxychlordane",
+		            "Oxychlordane, Particulate", "Oxyfluorfen", "Paraquat", "Parathion, Ethyl", "Parathion, Methyl",
+		            "PCNB", "Pebulate", "Pendimethalin", "Penoxsulam", "Permethrin", "Permethrin, cis-",
+		            "Permethrin, trans-", "Perthane", "Phenothrin", "Phorate", "Phosalone", "Phosmet", "Phosphamidon",
+		            "Piperonyl Butoxide", "Pirimiphos Methyl", "PrAllethrin", "Procymidone", "Profenofos",
+		            "Profluralin", "Prometon", "Prometryn", "Propachlor", "Propanil", "Propargite", "Propazine",
+		            "Propham", "Propoxur", "Pymetrozin", "Pyrethrin-2", "Pyrimethanil", "Quinoxyfen", "Resmethrin",
+		            "Safrotin", "Secbumeton", "Siduron", "Simazine", "Simetryn", "Sulfallate", "Sulfotep",
+		            "Tebuthiuron", "Tedion", "Terbufos", "Terbuthylazine", "Terbutryn", "Tetrachloro-m-xylene",
+		            "Tetrachlorvinphos", "Tetraethyl Pyrophosphate", "Tetramethrin", "T-Fluvalinate", "Thiamethoxam",
+		            "Thiobencarb", "Thionazin", "Tokuthion", "Total DDDs", "Total DDEs", "Total DDTs", "Total HCHs",
+		            "Total Pyrethrins", "Toxaphene", "Tralomethrin", "Tributyl Phosphorotrithioate, S,S,S-",
+		            "Trichlorfon", "Trichloronate", "Triclopyr", "Tridimephon", "Vinclozolin", ]
 		WaterChem = FILES["WaterChemistryData"]
 		path, fileName = os.path.split(WaterChem)
-		newFileName = 'Pesticides.csv'
+		newFileName = 'Pesticides' + extension
 		column_filter = 'DW_AnalyteName'
-		selectByAnalyte(path=path, fileName=fileName, newFileName=newFileName,
-		                analytes=analytes, field_filter=column_filter, sep=sep)
+		selectByAnalyte(path=path, fileName=fileName, newFileName=newFileName, analytes=analytes,
+		                field_filter=column_filter, sep=sep)
 		print("\t\tFinished writing data subset for Pesticides\n\n")
-		############## Subsets of datasets for Pesticides
+	############## ^^^^^^^^^^^^  Subsets of datasets for Pesticides
 
 	if For_IR:
 		RB = list(range(1, 10))
-		for IR_file in FILES.keys():
+		# add check to see if For_RB folder exists in path location
+		if not os.path.isdir(os.path.join(saveLocation, 'By_RB')):
+			os.mkdir(os.path.join(saveLocation, 'By_RB'))
+		for IR_file in FILES.values():
 			for Region in RB:
 				path, fileName = os.path.split(IR_file)
 				file_parts, ext = os.path.splitext(fileName)
 				if file_parts == 'IR_STORET_2010' or file_parts == 'IR_STORET_2012' or file_parts == 'IR_NWIS':
 					continue
-				# add a check and create folder called By_RB
 				newFileName = 'By_RB\\' + file_parts + '_RB_' + str(Region) + ext
 				if file_parts == 'IR_ToxicityData' or file_parts == 'IR_Field':
 					column_filter = 'RegionalBoard'
@@ -639,5 +730,5 @@ if __name__ == "__main__":
 					column_filter = 'RegionalBoardID'
 				analytes = [str(Region), ]
 				selectByAnalyte(path=path, fileName=fileName, newFileName=newFileName,
-				                analytes=analytes, field_filter=column_filter, sep=sep)
+				                analytes=analytes, field_filter=column_filter, sep=sep, For_IR=True)
 				print('Completed %s' % newFileName)
