@@ -593,12 +593,12 @@ if __name__ == "__main__":
 		AllSites_path = os.path.join(saveLocation, 'All_CEDEN_Sites.csv')
 		with open(AllSites_path, 'w', newline='', encoding='utf8') as AllSites_csv_file:
 			AllSites_dw = csv.DictWriter(AllSites_csv_file,
-			                             fieldnames=['SiteCode', 'Latitude', 'Longitude',
+			                             fieldnames=['StationName', 'SiteCode', 'Latitude', 'Longitude',
 			                                         'Datum', ], delimiter=sep, lineterminator='\n')
 			AllSites_dw.writeheader()
 			AllSites_writer = csv.writer(AllSites_csv_file, csv.QUOTE_MINIMAL, delimiter=sep, lineterminator='\n')
 			for key, value in AllSites.items():
-				AllSites_writer.writerow([key, value[0], value[1], value[2], ])
+				AllSites_writer.writerow([value[0], key, value[1], value[2], value[3]])
 	totalTime = datetime.now() - startTime
 	seconds = totalTime.seconds
 	minutes = seconds // 60
@@ -615,7 +615,7 @@ if __name__ == "__main__":
 
 
 
-	############## Subsets of datasets Safe To Swim
+	############## Subsets of WQ dataset for Cyanotoxins  ###
 	if not For_IR:
 		print("\nStarting data subset for Cyanotoxins....")
 		analytes = ["Anatoxin-A", "Cylindrospermopsin", "Desmethyl-LR", "Desmethyl-RR", "Lyngbyatoxin-a",
@@ -628,8 +628,9 @@ if __name__ == "__main__":
 		selectByAnalyte(path=path, fileName=fileName, newFileName=newFileName, analytes=analytes,
 		                field_filter=column_filter, sep=sep)
 		print("\t\tFinished writing data subset for CyanoToxins\n\n")
-		############## Subsets of datasets for Cyanotoxins
+		############## Subsets of WQ dataset for Cyanotoxins  ###
 
+		############## Subsets of WQ dataset for Safe To Swim  ###
 		print("\nStarting data subset for Safe to Swim...")
 		WaterChem = FILES['WaterChemistryData']
 		path, fileName = os.path.split(WaterChem)
@@ -639,10 +640,10 @@ if __name__ == "__main__":
 		selectByAnalyte(path=path, fileName=fileName, newFileName=newFileName, analytes=analytes,
 		                field_filter=column_filter, sep=sep)
 		SafeToSwim_Sites = 'SafeToSwim_Sites'  +'.' + extension
-
 		print("\t\tFinished writing data subset for Safe to Swim\n\n")
-		############## Subsets of datasets Safe To Swim
-		############## Subsets of datasets for Pesticides
+		############## Subsets of WQ dataset for Safe To Swim  ###
+
+		############## Subsets of WQ dataset for Pesticides
 		print("\nStarting data subset for Pesticides....")
 		analytes = ["Acetamiprid", "Acibenzolar-S-methyl", "Aldicarb", "Aldicarb ", "Aldicarb Sulfone",
 		            "Aldicarb Sulfoxide", "Aldrin", "Aldrin, Particulate", "Allethrin", "Ametryn", "Aminocarb", "AMPA",
