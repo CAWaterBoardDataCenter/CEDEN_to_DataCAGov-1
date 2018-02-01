@@ -36,13 +36,15 @@ Prerequisites:
 
 # Import the necessary libraries of python code
 import pyodbc
-import os, csv, re
-from dkan.client import DatasetAPI
+import os
+import csv
+import re
 from datetime import datetime
 import string
 
 
 ##### These are not currently in use as we have decided not to calculate RB values for each site
+#from dkan.client import DatasetAPI
 #import time
 #import json
 #import pandas as pd
@@ -108,6 +110,7 @@ def DictionaryFixer(Codes_Dict, filename ):
 		remove_Dict_Column(Codes_Dict_Alt, "ResultsReplicate")
 		remove_Dict_Column(Codes_Dict_Alt, "QACode")
 		remove_Dict_Column(Codes_Dict_Alt, "BatchVerification")
+		remove_Dict_Column(Codes_Dict_Alt, "Spatial_Datum")
 	if filename == 'TissueData':
 		################# Rename #################
 		rename_Dict_Column(Codes_Dict_Alt, oldName="MatrixName", Newname="Matrix")
@@ -140,6 +143,7 @@ def DictionaryFixer(Codes_Dict, filename ):
 		remove_Dict_Column(Codes_Dict_Alt, "ResultsReplicate")
 		# Batch verification exists but should not be used for IR as of 1/25/2018
 		remove_Dict_Column(Codes_Dict_Alt, "BatchVerification")
+		remove_Dict_Column(Codes_Dict_Alt, "Spatial_Datum")
 	if filename == 'IR_BenthicData':
 		################# Rename #################
 		rename_Dict_Column(Codes_Dict_Alt, oldName="ResultQualCode", Newname="ResQualCode")
@@ -151,6 +155,7 @@ def DictionaryFixer(Codes_Dict, filename ):
 		remove_Dict_Column(Codes_Dict_Alt, "ResultsReplicate")
 		remove_Dict_Column(Codes_Dict_Alt, "QACode")
 		remove_Dict_Column(Codes_Dict_Alt, "BatchVerification")
+		remove_Dict_Column(Codes_Dict_Alt, "Spatial_Datum")
 	if filename == 'IR_WaterChemistryData':
 		################# Rename #################
 		rename_Dict_Column(Codes_Dict_Alt, oldName="ResultQualCode", Newname="ResQualCode")
@@ -159,6 +164,7 @@ def DictionaryFixer(Codes_Dict, filename ):
 		################################## Delete #################
 		remove_Dict_Column(Codes_Dict_Alt, "BatchVerification")
 		remove_Dict_Column(Codes_Dict_Alt, "CollectionReplicate")
+		remove_Dict_Column(Codes_Dict_Alt, "Spatial_Datum")
 	if filename == 'IR_STORET_2010':
 		################# Rename #################
 		rename_Dict_Column(Codes_Dict_Alt, oldName="Analyte", Newname="AnalyteName")
@@ -168,6 +174,7 @@ def DictionaryFixer(Codes_Dict, filename ):
 		#  Batch verification exists but should not be used for IR as of 1/25/2018
 		remove_Dict_Column(Codes_Dict_Alt, "BatchVerification")
 		remove_Dict_Column(Codes_Dict_Alt, "CollectionReplicate")
+		remove_Dict_Column(Codes_Dict_Alt, "Spatial_Datum")
 	if filename == 'IR_STORET_2012':
 		################# Rename #################
 		rename_Dict_Column(Codes_Dict_Alt, oldName="Analyte", Newname="AnalyteName")
@@ -177,6 +184,7 @@ def DictionaryFixer(Codes_Dict, filename ):
 		#  Batch verification exists but should not be used for IR as of 1/25/2018
 		remove_Dict_Column(Codes_Dict_Alt, "BatchVerification")
 		remove_Dict_Column(Codes_Dict_Alt, "CollectionReplicate")
+		remove_Dict_Column(Codes_Dict_Alt, "Spatial_Datum")
 	if filename == 'IR_NWIS':
 		################# Rename #################
 		rename_Dict_Column(Codes_Dict_Alt, oldName="Analyte", Newname="AnalyteName")
@@ -186,6 +194,7 @@ def DictionaryFixer(Codes_Dict, filename ):
 		#  Batch verification exists but should not be used for IR as of 1/25/2018
 		remove_Dict_Column(Codes_Dict_Alt, "BatchVerification")
 		remove_Dict_Column(Codes_Dict_Alt, "CollectionReplicate")
+		remove_Dict_Column(Codes_Dict_Alt, "Spatial_Datum")
 	if filename == 'IR_Field':
 		################# Rename #################
 		rename_Dict_Column(Codes_Dict_Alt, oldName="ResultQualCode", Newname="ResQualCode")
@@ -195,6 +204,7 @@ def DictionaryFixer(Codes_Dict, filename ):
 		################################## Delete #################
 		#  Batch verification exists but should not be used for IR as of 1/25/2018
 		remove_Dict_Column(Codes_Dict_Alt, "BatchVerification")
+		remove_Dict_Column(Codes_Dict_Alt, "Spatial_Datum")
 	if filename == 'IR_TissueData':
 		################# Rename #################
 		rename_Dict_Column(Codes_Dict_Alt, oldName="ResultQualCode", Newname="ResQualCode")
@@ -203,6 +213,7 @@ def DictionaryFixer(Codes_Dict, filename ):
 		################################## Delete #################
 		#  Batch verification exists but should not be used for IR as of 1/25/2018
 		remove_Dict_Column(Codes_Dict_Alt, "BatchVerification")
+		remove_Dict_Column(Codes_Dict_Alt, "Spatial_Datum")
 	return Codes_Dict_Alt
 ###########################################################################################################################
 #########################        Dictionary of code fixer 	above	###########################
@@ -228,6 +239,8 @@ def data_retrieval(tables, StartYear, EndYear, saveLocation, sep, extension):
 	# This loop iterates on every item in the tables list.
 	for count, (filename, table) in enumerate(tables.items()):
 		writtenFiles[filename] = os.path.join(saveLocation, '%s.%s' % (filename, extension))
+		if count == 0:
+			WQXfile = writtenFiles[filename]
 		##############################################################################
 		########################## SQL Statement  ####################################
 		##############################################################################
@@ -261,7 +274,7 @@ def data_retrieval(tables, StartYear, EndYear, saveLocation, sep, extension):
 		#  the WQX stations. If the script has already processed past WQX_Stations (count>0) then we read in the file
 		#  for accessing the datum associated with the station codes.
 		if count > 0 and not For_IR:
-			with open(writtenFiles[0], 'r', newline='', encoding='utf8') as WQX_sites:
+			with open(WQXfile, 'r', newline='', encoding='utf8') as WQX_sites:
 				WQX_Sites = {}
 				SitesCounter = 0
 				reader = csv.reader(WQX_sites, delimiter=sep, lineterminator='\n')
@@ -272,7 +285,7 @@ def data_retrieval(tables, StartYear, EndYear, saveLocation, sep, extension):
 					SiterowDict = dict(zip(Sitecolumns, row))
 					WQX_Sites[SiterowDict['StationCode']] = SiterowDict['Datum']
 		if 1 == 1:
-			with open(writtenFiles[count], 'w', newline='', encoding='utf8') as csvfile:
+			with open(writtenFiles[filename], 'w', newline='', encoding='utf8') as csvfile:
 				dw = csv.DictWriter(csvfile, fieldnames=columns, delimiter=sep, lineterminator='\n')
 				dw.writeheader()
 				writer = csv.writer(csvfile, csv.QUOTE_MINIMAL, delimiter=sep, lineterminator='\n')
@@ -281,18 +294,6 @@ def data_retrieval(tables, StartYear, EndYear, saveLocation, sep, extension):
 					for row in cursor:
 						filtered = [decodeAndStrip(t) for t in list(row)]
 						newDict = dict(zip(columns, filtered))
-						#point = Point(float(newDict["TargetLongitude"]), float(newDict["TargetLatitude"]))
-						##########  this is so slow! and we've chosen not to use WB regions just yet########################
-						#for count, polygon in enumerate(polygons):
-						#	poly = Polygon(polygon)
-						#	if count == 9 and newDict["CA_WB_Region"] != '':
-						#		continue
-						#	elif poly.contains(point):
-								# print(polygon_in.records()[count][3])
-						#		newDict["CA_WB_Region"] = polygon_in.records()[count][3]
-						#	else:
-						#		newDict["CA_WB_Region"] = 'Outside of SHP file'
-						##########  this is so slow! and we've chosen not to use WB regions just yet########################
 						writer.writerow(list(newDict.values()))
 				else:
 					for row in cursor:
@@ -304,6 +305,15 @@ def data_retrieval(tables, StartYear, EndYear, saveLocation, sep, extension):
 						DQ = []
 						QInd = ''
 						Codes_Dict_Alt = DictionaryFixer(Codes_Dict, filename)
+						#####  IR and Benthic datasets do not need datum added  #####
+						if For_IR or filename == 'BenthicData':
+							pass
+						else:
+							try:
+								newDict['Spatial_Datum'] = WQX_Sites[newDict['StationCode']]
+							except KeyError:
+								newDict['Spatial_Datum'] = 'NR'
+						#####  ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^  #####
 						for codeCol in list(Codes_Dict_Alt):
 							if codeCol == 'QACode':
 								for codeVal in newDict[codeCol].split(','):
@@ -375,26 +385,9 @@ def data_retrieval(tables, StartYear, EndYear, saveLocation, sep, extension):
 						else:
 							newDict['DataQuality'] = DQ_Codes[MaxDQ]
 							newDict['DataQualityIndicator'] = QInd
-						if For_IR or filename == 'BenthicData':
-							pass
-						else:
-							try:
-								newDict['Spatial_Datum'] = WQX_Sites[newDict['StationCode']]
-							except KeyError:
-								newDict['Spatial_Datum'] = 'NR'
-						##########  this is so slow!!!!!  ##################################################
-						#for row in WQX_Sites:
-						#	if newDict['StationCode'] in row[2]:
-						#		newDict['DatumProjection'] = row[11]
-								#newDict['CA_Regional_Board'] = row[16]
-						#	else:
-						#		newDict['DatumProjection'] = 'Unknown'
-								#newDict['CA_Regional_Board'] = 'Unlisted'
-						##########  this is so slow!!!!!  ##################################################
 						writer.writerow(list(newDict.values()))
 				print("Finished data retrieval for the %s table" % table)
-	#cnxn.close()
-	return writtenFiles#, WQX_Sites#, site_Columns
+	return writtenFiles
 
 ####################################################################################
 ############################# Select By Analyte Subset #############################
@@ -431,7 +424,26 @@ if __name__ == "__main__":
 	#  This is the filter that every cell in each dataset gets passed through. From the "string" library, we are only
 	# allowing printable characters except pipes, quotes, tabs, returns, control breaks, etc.
 	printable = set(string.printable) - set('|"\'`\t\r\n\f\v')
-
+	# Is this to be run for IR?
+	For_IR = False
+	# What type of delimiter should files have? "|" or "\t" are common
+	sep = '|'
+	extension = 'csv'
+	print('\n\n\n\n')
+	# This is the SWRCB internal server set as a local environmental variable for the user.
+	# Save the server address to the SERVER1 environmental variable for your account.
+	SERVER1 = os.environ.get('SERVER1')
+	# Save the data.ca.gov user information to the UID environmental variable for your account.
+	UID = os.environ.get('UID')
+	# Save the data.ca.gov password associated with your UserID information to the PWD environmental variable for your
+	# account.
+	PWD = os.environ.get('PWD')
+	# 1950 is a common timestamp for Quality Control records and this value should not be changed.
+	StartYear = 1950
+	# update this year to include the most recent records.
+	EndYear = 2018
+	# Choose a location to write files locally.
+	saveLocation = "C:\\Users\\AHill\\Documents\\CEDEN_DataMart"
 	###############################################################################
 	##################        Dictionaries for QA codes below 		###############
 	###############################################################################
@@ -486,6 +498,7 @@ if __name__ == "__main__":
 	MatrixName_list = {"blankwater": 0, "Blankwater": 0, "labwater": 0, "blankmatrix": 0, }
 	CollectionReplicate_list = {"0": 1, "1": 1, "2": 0, "3": 0, "4": 0, "5": 0, "6": 0, "7": 0, "8": 0, }
 	ResultsReplicate_list = {"0": 1, "1": 1, "2": 0, "3": 0, "4": 0, "5": 0, "6": 0, "7": 0, "8": 0, }
+	Spatial_Datum_list = {"NR": 3, }
 	DQ_Codes = {0: "MetaData, QC record", 1: "Passed QC", 2: "Some review needed", 3: "Spatial Accuracy Unknown",
 	            4: "Extensive review needed", 5: "Unknown data quality", 6: "Reject record", }
 	# the Codes_Dict variable is a dictionary template for each dataset. Some datasets do not have all of these columns
@@ -494,11 +507,12 @@ if __name__ == "__main__":
 	              "ResultQualCode": ResultQualCode_list, "TargetLatitude": TargetLatitude_list, "Result": Result_list,
 	              "StationCode": StationCode_list, "SampleTypeCode": SampleTypeCode_list, "SampleDate": SampleDate_list,
 	              "ProgramName": ProgramName_list, "Analyte": Analyte_list, "MatrixName": MatrixName_list,
-	              "CollectionReplicate": CollectionReplicate_list, "ResultsReplicate": ResultsReplicate_list, }
+	              "CollectionReplicate": CollectionReplicate_list, "ResultsReplicate": ResultsReplicate_list,
+	              "Spatial_Datum": Spatial_Datum_list, }
 	# This is a Python dictionary of filenames and their Datamart names. This can be expanded by adding to the end of
 	#  the list. The FIRST key in this dictionary MUST be WQX_Stations. If For_IR is set to False, it will complete the
 	# normal weekly 5 tables. If For_IR is set to True, this script will complete the IR tables.
-	tables = {} # initializes tables variable
+	tables = {}  # initializes tables variable
 	if not For_IR:
 		tables = {"WQX_Stations": "DM_WQX_Stations_MV", "WaterChemistryData": "WQDMart_MV",
 		          "ToxicityData": "ToxDmart_MV", "TissueData": "TissueDMart_MV", "BenthicData": "BenthicDMart_MV",
@@ -513,26 +527,6 @@ if __name__ == "__main__":
 	#########################        Dictionaries for QA codes above		###############################################
 	###########################################################################################################################
 
-	# Is this to be run for IR?
-	For_IR = False
-	# What type of delimiter should files have? "|" or "\t" are common
-	sep = '|'
-	extension = 'csv'
-	print('\n\n\n\n')
-	# This is the SWRCB internal server set as a local environmental variable for the user.
-	# Save the server address to the SERVER1 environmental variable for your account.
-	SERVER1 = os.environ.get('SERVER1')
-	# Save the data.ca.gov user information to the UID environmental variable for your account.
-	UID = os.environ.get('UID')
-	# Save the data.ca.gov password associated with your UserID information to the PWD environmental variable for your
-	# account.
-	PWD = os.environ.get('PWD')
-	# 1950 is a common timestamp for Quality Control records and this value should not be changed.
-	StartYear = 1950
-	# update this year to include the most recent records.
-	EndYear = 2018
-	# Choose a location to write files locally.
-	saveLocation = "C:\\Users\\AHill\\Documents\\CEDEN_DataMart"
 	startTime = datetime.now()
 	# This line runs the functions defined above.
 	FILES = data_retrieval(tables, StartYear, EndYear, saveLocation, sep=sep, extension=extension)
