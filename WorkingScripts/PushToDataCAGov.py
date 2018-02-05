@@ -8,8 +8,11 @@ from dkan.client import DatasetAPI
 ###################################################################################################
 # NODE Testing
 # 1912 Data Update Automation, Large File Loading
-# 2061 Testing
-# 2076 Keep Alive
+# 2131 Testing
+# 2136 Sites of Safe To Swim
+# 2146 Sites of Safe To Swim, 2
+# 2156 FHAB portal data
+
 
 # 1906 CEDEN Chemistry Data
 #  541 Surface Water Toxicity
@@ -20,7 +23,7 @@ from dkan.client import DatasetAPI
 
 
 
-NODE = 2076
+NODE = 2131
 
 
 #fileWritten = FILES[1]
@@ -28,7 +31,8 @@ NODE = 2076
 user = os.environ.get('DCG_user')
 password = os.environ.get('DCG_pw')
 URI = os.environ.get('URI')
-fileWritten = 'C:\\Users\\AHill\\Documents\\CEDEN_DataMart\\testExtraSmall.csv'
+#fileWritten = 'C:\\Users\\AHill\\Documents\\CEDEN_DataMart\\BenthicData.csv'
+fileWritten = 'C:\\Users\\AHill\\Documents\\CEDEN_DataMart\\WQX_Stations.csv'
 # Attach dataset data
 #try:
 	#Sign into the data.ca.gov website

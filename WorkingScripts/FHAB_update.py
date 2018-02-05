@@ -48,8 +48,8 @@ SERVER = os.environ.get('FHAB_Server')
 UID = os.environ.get('FHAB_User')
 path = 'C:\\Users\AHill\Documents\FHABs'
 FHAB = 'FHAB'
-ext = '.txt'
-sep = '\t'
+ext = '.csv'
+sep = '|'
 file = os.path.join(path, FHAB + ext)
 
 
@@ -58,7 +58,7 @@ def decodeAndStrip(t):
 	filter1 = ''.join(filter(lambda x: x in printable, str(t)))
 	return filter1
 
-cnxn = pyodbc.connect(Driver='SQL Server Native Client 11.0', Server=SERVER, uid=UID, Trusted_Connection='Yes')
+cnxn = pyodbc.connect(Driver='ODBC Driver 11 for SQL Server', Server=SERVER, uid=UID, Trusted_Connection='Yes')
 cursor = cnxn.cursor()
 sql = "SELECT dbo.AlgaeBloomReport.AlgaeBloomReportID, dbo.AlgaeBloomReport.RegionalBoardID, dbo.AlgaeBloomReport.CountyID," \
       " dbo.AlgaeBloomReport.Latitude, dbo.AlgaeBloomReport.Longitude, dbo.AlgaeBloomReport.ObservationDate, CASE WHEN " \
@@ -80,6 +80,12 @@ with open(file, 'w', newline='', encoding='utf8') as writer:
 		row = [str(word).replace('None', '') for word in row]
 		filtered = [decodeAndStrip(t) for t in list(row)]
 		newDict = dict(zip(columns, filtered))
+		try:
+			long = float(newDict['Longitude'])
+			if long > 0:
+				newDict['Longitude'] = -long
+		except ValueError:
+			pass
 		FHAB_writer.writerow(list(newDict.values()))
 
 # 2156 FHAB portal data

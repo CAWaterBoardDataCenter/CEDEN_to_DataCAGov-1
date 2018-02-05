@@ -237,7 +237,7 @@ def data_retrieval(tables, StartYear, EndYear, saveLocation, sep, extension, For
 		# this is the connection to SWRCB internal DataMart. Server, IUD, PWD are set as environmental variables so
 		# no passwords are in plain text, see "Main" below for importing examples. UID
 		# below create a connection
-		cnxn = pyodbc.connect(Driver='SQL Server Native Client 11.0', Server=SERVER1, uid=UID, pwd=PWD)
+		cnxn = pyodbc.connect(Driver='ODBC Driver 11 for SQL Server', Server=SERVER1, uid=UID, pwd=PWD)
 		# creates a cursor which will execute the sql statement
 		cursor = cnxn.cursor()
 	except:
@@ -247,7 +247,7 @@ def data_retrieval(tables, StartYear, EndYear, saveLocation, sep, extension, For
 	# This loop iterates on every item in the tables list.
 	AllSites = {}
 	for count, (filename, table) in enumerate(tables.items()):
-		writtenFiles[filename] = os.path.join(saveLocation, '%s.%s' % (filename, extension))
+		writtenFiles[filename] = os.path.join(saveLocation, '%s%s' % (filename, extension))
 		if count == 0:
 			WQXfile = writtenFiles[filename]
 		##############################################################################
@@ -639,7 +639,7 @@ if __name__ == "__main__":
 		column_filter = 'Analyte'
 		selectByAnalyte(path=path, fileName=fileName, newFileName=newFileName, analytes=analytes,
 		                field_filter=column_filter, sep=sep)
-		SafeToSwim_Sites = 'SafeToSwim_Sites'  +'.' + extension
+		SafeToSwim_Sites = 'SafeToSwim_Sites' + extension
 		print("\t\tFinished writing data subset for Safe to Swim\n\n")
 		############## Subsets of WQ dataset for Safe To Swim  ###
 
