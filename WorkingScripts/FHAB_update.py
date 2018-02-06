@@ -87,7 +87,7 @@ with open(file, 'w', newline='', encoding='utf8') as writer:
 			if long > 0:
 				newDict['Longitude'] = -long
 		except ValueError:
-			newDict['Longitude'].replace(' ', '')
+			pass
 		FHAB_writer.writerow(list(newDict.values()))
 
 # 2156 FHAB portal data
