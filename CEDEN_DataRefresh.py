@@ -41,6 +41,7 @@ import csv
 import re
 from datetime import datetime
 import string
+import getpass
 
 
 ##### These are not currently in use as we have decided not to calculate RB values for each site
@@ -145,6 +146,7 @@ def DictionaryFixer(Codes_Dict, filename ):
 		################# Rename #################
 		rename_Dict_Column(Codes_Dict_Alt, oldName="ResultQualCode", Newname="ResQualCode")
 		rename_Dict_Column(Codes_Dict_Alt, oldName="ProgramName", Newname="Program")
+		rename_Dict_Column(Codes_Dict_Alt, oldName="Latitude", Newname="TargetLatitude")
 		#Batch verification exists but should not be used for IR as of 1/25/2018
 		#rename_Dict_Column(Codes_Dict_Alt, oldName="BatchVerification", Newname="BatchVerificationCode")
 		################################## Delete #################
@@ -156,6 +158,7 @@ def DictionaryFixer(Codes_Dict, filename ):
 		################# Rename #################
 		rename_Dict_Column(Codes_Dict_Alt, oldName="ResultQualCode", Newname="ResQualCode")
 		rename_Dict_Column(Codes_Dict_Alt, oldName="SampleTypeCode", Newname="SampleType")
+		rename_Dict_Column(Codes_Dict_Alt, oldName="Latitude", Newname="TargetLatitude")
 		################################## Delete #################
 		remove_Dict_Column(Codes_Dict_Alt, "Analyte")
 		remove_Dict_Column(Codes_Dict_Alt, "Result")
@@ -169,6 +172,7 @@ def DictionaryFixer(Codes_Dict, filename ):
 		rename_Dict_Column(Codes_Dict_Alt, oldName="ResultQualCode", Newname="ResQualCode")
 		rename_Dict_Column(Codes_Dict_Alt, oldName="Analyte", Newname="AnalyteName")
 		rename_Dict_Column(Codes_Dict_Alt, oldName="ResultsReplicate", Newname="Replicate")
+		rename_Dict_Column(Codes_Dict_Alt, oldName="Latitude", Newname="TargetLatitude")
 		################################## Delete #################
 		remove_Dict_Column(Codes_Dict_Alt, "BatchVerification")
 		remove_Dict_Column(Codes_Dict_Alt, "CollectionReplicate")
@@ -178,6 +182,7 @@ def DictionaryFixer(Codes_Dict, filename ):
 		rename_Dict_Column(Codes_Dict_Alt, oldName="Analyte", Newname="AnalyteName")
 		rename_Dict_Column(Codes_Dict_Alt, oldName="ResultQualCode", Newname="ResQualCode")
 		rename_Dict_Column(Codes_Dict_Alt, oldName="ResultsReplicate", Newname="Replicate")
+		rename_Dict_Column(Codes_Dict_Alt, oldName="Latitude", Newname="TargetLatitude")
 		################################## Delete #################
 		#  Batch verification exists but should not be used for IR as of 1/25/2018
 		remove_Dict_Column(Codes_Dict_Alt, "BatchVerification")
@@ -188,6 +193,7 @@ def DictionaryFixer(Codes_Dict, filename ):
 		rename_Dict_Column(Codes_Dict_Alt, oldName="Analyte", Newname="AnalyteName")
 		rename_Dict_Column(Codes_Dict_Alt, oldName="ResultQualCode", Newname="ResQualCode")
 		rename_Dict_Column(Codes_Dict_Alt, oldName="ResultsReplicate", Newname="Replicate")
+		rename_Dict_Column(Codes_Dict_Alt, oldName="Latitude", Newname="TargetLatitude")
 		################################## Delete #################
 		#  Batch verification exists but should not be used for IR as of 1/25/2018
 		remove_Dict_Column(Codes_Dict_Alt, "BatchVerification")
@@ -198,6 +204,7 @@ def DictionaryFixer(Codes_Dict, filename ):
 		rename_Dict_Column(Codes_Dict_Alt, oldName="Analyte", Newname="AnalyteName")
 		rename_Dict_Column(Codes_Dict_Alt, oldName="ResultQualCode", Newname="ResQualCode")
 		rename_Dict_Column(Codes_Dict_Alt, oldName="ResultsReplicate", Newname="Replicate")
+		rename_Dict_Column(Codes_Dict_Alt, oldName="Latitude", Newname="TargetLatitude")
 		################################## Delete #################
 		#  Batch verification exists but should not be used for IR as of 1/25/2018
 		remove_Dict_Column(Codes_Dict_Alt, "BatchVerification")
@@ -207,6 +214,7 @@ def DictionaryFixer(Codes_Dict, filename ):
 		################# Rename #################
 		rename_Dict_Column(Codes_Dict_Alt, oldName="ResultQualCode", Newname="ResQualCode")
 		rename_Dict_Column(Codes_Dict_Alt, oldName="ResultsReplicate", Newname="ResultReplicate")
+		rename_Dict_Column(Codes_Dict_Alt, oldName="Latitude", Newname="TargetLatitude")
 		# IR_Field has Analyte and AnalyteName columns
 		Codes_Dict_Alt["AnalyteName"] = Codes_Dict_Alt["Analyte"]
 		################################## Delete #################
@@ -218,6 +226,7 @@ def DictionaryFixer(Codes_Dict, filename ):
 		rename_Dict_Column(Codes_Dict_Alt, oldName="ResultQualCode", Newname="ResQualCode")
 		rename_Dict_Column(Codes_Dict_Alt, oldName="ResultsReplicate", Newname="ResultReplicate")
 		rename_Dict_Column(Codes_Dict_Alt, oldName="MatrixName", Newname="Matrix")
+		rename_Dict_Column(Codes_Dict_Alt, oldName="Latitude", Newname="TargetLatitude")
 		################################## Delete #################
 		#  Batch verification exists but should not be used for IR as of 1/25/2018
 		remove_Dict_Column(Codes_Dict_Alt, "BatchVerification")
@@ -246,6 +255,7 @@ def data_retrieval(tables, StartYear, EndYear, saveLocation, sep, extension, For
 		      "connection." % SERVER1)
 	# This loop iterates on every item in the tables list.
 	AllSites = {}
+	Latitude, Longitude = ['Latitude', 'Longitude', ]
 	for count, (filename, table) in enumerate(tables.items()):
 		writtenFiles[filename] = os.path.join(saveLocation, '%s%s' % (filename, extension))
 		if count == 0:
@@ -265,15 +275,15 @@ def data_retrieval(tables, StartYear, EndYear, saveLocation, sep, extension, For
 		      "CONVERT(datetime, '%d-01-01') " % StartYear + \
 		      "AND CONVERT(datetime, '%d-12-31'));" % EndYear
 			cursor.execute(sql)
-			#  This is where we could change the order of all the columns.... don't forget to write them in the same
-			# order
-			if For_IR or filename == 'BenthicData':
-				columns = [desc[0].replace('TargetL', 'L') for desc in cursor.description]\
-				          + ['DataQuality'] + ['DataQualityIndicator']
+			if For_IR:
+				columns = [desc[0] for desc in cursor.description]
+				Latitude, Longitude = ['TargetLatitude', 'TargetLongitude', ]
 			else:
-				columns = [desc[0].replace('TargetL', 'L') for desc in cursor.description] \
-				          + ['DataQuality'] + ['DataQualityIndicator'] \
-				          + ['Datum']
+				columns = [desc[0].replace('TargetL', 'L') for desc in cursor.description]
+			if 'Datum' in columns:
+				columns += ['DataQuality'] + ['DataQualityIndicator']
+			else:
+				columns += ['DataQuality'] + ['DataQualityIndicator'] + ['Datum']
 		##############################################################################
 		########################## SQL Statement  ####################################
 		##############################################################################
@@ -305,9 +315,9 @@ def data_retrieval(tables, StartYear, EndYear, saveLocation, sep, extension, For
 						filtered = [decodeAndStrip(t) for t in list(row)]
 						newDict = dict(zip(columns, filtered))
 						try:
-							long = float(newDict['Longitude'])
+							long = float(newDict[Longitude])
 							if long > 0:
-								newDict['Longitude'] = -long
+								newDict[Longitude] = -long
 						except ValueError:
 							pass
 						writer.writerow(list(newDict.values()))
@@ -315,31 +325,24 @@ def data_retrieval(tables, StartYear, EndYear, saveLocation, sep, extension, For
 					Codes_Dict_Alt = DictionaryFixer(Codes_Dict, filename)
 					for row in cursor:
 						filtered = [decodeAndStrip(t).replace('None', '') for t in list(row)]
-						if For_IR or filename == 'BenthicData':
-							newDict = dict(zip(columns, filtered + [''] + ['']))
-							try:
-								long = float(newDict['Longitude'])
-								if long > 0:
-									newDict['Longitude'] = -long
-							except ValueError:
-								pass
-						else:
-							newDict = dict(zip(columns, filtered + [''] + [''] + ['']))
-							try:
-								long = float(newDict['Longitude'])
-								if long > 0:
-									newDict['Longitude'] = -long
-							except ValueError:
-								pass
+						while len(columns) > len(filtered):
+							filtered += ['']
+						newDict = dict(zip(columns, filtered))
+						try:
+							long = float(newDict[Longitude])
+							if long > 0:
+								newDict[Longitude] = -long
+						except ValueError:
+							pass
 						DQ = []
-						QInd = ''
+						QInd = []
 						#####  IR and Benthic datasets do not need datum added  #####
 						if For_IR or filename == 'BenthicData':
 							pass
 						else:
-							try:
+							if newDict['StationCode'] in WQX_Sites:
 								newDict['Datum'] = WQX_Sites[newDict['StationCode']]
-							except KeyError:
+							else:
 								newDict['Datum'] = 'NR'
 						#####  ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^  #####
 						for codeCol in list(Codes_Dict_Alt):
@@ -357,10 +360,8 @@ def data_retrieval(tables, StartYear, EndYear, saveLocation, sep, extension, For
 										if isinstance(yearTest, int) and yearTest < 2008:
 											print("This year was changed: %d" % yearTest)
 											DQ += [6]
-										continue
 									elif codeVal == 'DNQ' and int(newDict['SampleDate'][:4]) < 2008:
 										DQ += [6]
-										continue
 									elif codeVal == 'ND':
 										# the Benthic dataset does not have a result column
 										# we therefore treat the exception of a ND value
@@ -375,7 +376,6 @@ def data_retrieval(tables, StartYear, EndYear, saveLocation, sep, extension, For
 											DQ += [1]
 									elif codeVal in list(Codes_Dict_Alt[codeCol]):
 										DQ += [Codes_Dict_Alt[codeCol][codeVal]]
-										continue
 							else:
 								for codeVal in [newDict[codeCol]]:
 									if codeVal in list(Codes_Dict_Alt[codeCol]):
@@ -384,34 +384,21 @@ def data_retrieval(tables, StartYear, EndYear, saveLocation, sep, extension, For
 							MaxDQ = max(DQ)
 						except ValueError:
 							MaxDQ = 7
-							DQ += [7, ]
+							DQ += [MaxDQ, ]
+						## This marks the beginning of the Quality indicator column value generator
 						for codeCol in list(Codes_Dict_Alt):
 							if codeCol == 'QACode':
-								for codeVal in newDict[codeCol].split(','):
-									if codeVal in list(Codes_Dict_Alt[codeCol]):
-										if any([Codes_Dict_Alt[codeCol][codeVal] == 0,
-										        Codes_Dict_Alt[codeCol][codeVal] == 1]):
-											continue
-										elif MaxDQ == Codes_Dict_Alt[codeCol][codeVal]:
-											if QInd == '':
-												QInd += codeCol
-											elif QInd == 'QACode':
-												continue
-											else:
-												QInd += ', ' + codeCol
-									continue
+								codeValList = newDict[codeCol].split(',')
 							else:
-								for codeVal in [newDict[codeCol]]:
-									if codeVal in list(Codes_Dict_Alt[codeCol]):
-										if any([Codes_Dict_Alt[codeCol][codeVal] == 0,
-													Codes_Dict_Alt[codeCol][codeVal] == 1]):
-											continue
-										elif MaxDQ == Codes_Dict_Alt[codeCol][codeVal]:
-											if QInd == '':
-												QInd += codeCol
-											else:
-												QInd += ", " + codeCol
-										continue
+								codeValList = newDict[codeCol]
+							for codeVal in codeValList:
+								if codeVal in list(Codes_Dict_Alt[codeCol]):
+									if MaxDQ == Codes_Dict_Alt[codeCol][codeVal]:
+										QInd += [codeCol, ]
+						# to remove potential duplicate values generated by the Quality indicator we use the set
+						# structure. We then convert this to a string and store it to the record's DataQuality
+						# Indicator field.
+						QInd = ', '.join(str(w) for w in set(QInd))
 						if min(DQ) == 0:
 							newDict['DataQuality'] = DQ_Codes[0]
 						else:
@@ -419,8 +406,8 @@ def data_retrieval(tables, StartYear, EndYear, saveLocation, sep, extension, For
 							newDict['DataQualityIndicator'] = QInd
 						writer.writerow(list(newDict.values()))
 						if newDict['StationCode'] not in AllSites:
-							AllSites[newDict['StationCode']] = [newDict['StationName'], newDict['Latitude'],
-							                                    newDict[ 'Longitude'], newDict['Datum'], ]
+							AllSites[newDict['StationCode']] = [newDict['StationName'], newDict[Latitude],
+							                                    newDict[Longitude], newDict['Datum'], ]
 				print("Finished data retrieval for the %s table" % table)
 	return writtenFiles, AllSites
 
@@ -432,6 +419,10 @@ def selectByAnalyte(path, fileName, analytes, newFileName, field_filter, sep, Fo
 	fileOut = os.path.join(path, newFileName)
 	Analyte_Sites = {}
 	columns = []
+	if For_IR:
+		Latitude, Longitude = ['TargetLatitude', 'TargetLongitude', ]
+	else:
+		Latitude, Longitude = ['Latitude', 'Longitude', ]
 	with open(file, 'r', newline='', encoding='utf8') as txtfile:
 		reader = csv.reader(txtfile, delimiter=sep, lineterminator='\n')
 		with open(fileOut, 'w', newline='', encoding='utf8') as txtfileOut:
@@ -449,8 +440,8 @@ def selectByAnalyte(path, fileName, analytes, newFileName, field_filter, sep, Fo
 				if rowDict[field_filter] in analytes:
 					writer.writerow(row)
 					if rowDict['StationCode'] not in Analyte_Sites:
-						Analyte_Sites[rowDict['StationCode']] = [rowDict['StationName'], rowDict['Latitude'],
-						                                         rowDict['Longitude'], rowDict['Datum']]
+						Analyte_Sites[rowDict['StationCode']] = [rowDict['StationName'], rowDict[Latitude],
+						                                         rowDict[Longitude], rowDict['Datum']]
 	if not For_IR:
 		Sites = os.path.join(path, 'Sites_for_' + newFileName)
 		with open(Sites, 'w', newline='', encoding='utf8') as Sites_Out:
@@ -498,7 +489,12 @@ if __name__ == "__main__":
 	# update this year to include the most recent records.
 	EndYear = 2018
 	# Choose a location to write files locally.
-	saveLocation = "C:\\Users\\AHill\\Documents\\CEDEN_DataMart"
+	### you can change this to point to a different location but it does automatically get your user information.
+	first = 'C:\\Users\\%s\\Documents' % getpass.getuser()
+	saveLocation = os.path.join(first, 'CEDEN_DataMartRefresh')
+	if not os.path.isdir(saveLocation):
+		print('\tCreating the CEDEN_DataMart folder for datasets as \n\t\t%s\n' % path)
+		os.mkdir(saveLocation)
 	###############################################################################
 	##################        Dictionaries for QA codes below 		###############
 	###############################################################################
@@ -540,7 +536,7 @@ if __name__ == "__main__":
 	ResultQualCode_list = {"/oC": 6, "<": 1, "<=": 1, "=": 1, ">": 1, ">=": 1, "A": 1, "CG": 6, "COL": 1, "DNQ": 1,
 	                       "JF": 1, "NA": 6, "ND": 1, "NR": 6, "NRS": 6, "NRT": 6, "NSI": 1, "P": 1, "PA": 1, "w/C": 6,
 	                       "": 1, "Systematic Contamination": 4, }
-	Latitude_list = {"-88": 0, "": 6, }
+	Latitude_list = {"-88": 0, "": 6, '0.0': 6, }
 	Result_list = {"": 1, }
 	StationCode_list = {"LABQA": 0, "LABQA_SWAMP": 0, "000NONPJ": 0, "FIELDQA": 0, "Non Project QA Sample": 0,
 	                    "Laboratory QA Sample": 0, "Field QA sample": 0, "FIELDQA SWAMP": 0, }

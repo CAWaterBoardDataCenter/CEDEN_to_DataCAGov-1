@@ -39,14 +39,19 @@ import re
 from datetime import datetime
 import string
 from dkan.client import DatasetAPI
+import getpass
+
 
 printable = set(string.printable) - set('|"\'`\t\r\n\f\v')
 SERVER = os.environ.get('FHAB_Server')
 UID = os.environ.get('FHAB_User')
-### you must change this path to suite your computer
-path = 'C:\\Users\AHill\Documents\FHABs'
+### you can change this to point to a different location
+first = 'C:\\Users\%s\Documents' % getpass.getuser()
+path = os.path.join(first, 'FHAB_BloomReport')
+if not os.path.isdir(path):
+	os.mkdir(path)
 ### name of output file
-FHAB = 'FHAB'
+FHAB = 'FHAB_BloomReport'
 ###   Ideally data.ca.gov will be able to generate data preview for tab delimited txt files... until then
 ### extension type. Data.ca.gov requires csv for preview functionality
 ext = '.csv'
@@ -87,7 +92,7 @@ with open(file, 'w', newline='', encoding='utf8') as writer:
 			if long > 0:
 				newDict['Longitude'] = -long
 		except ValueError:
-			newDict['Longitude'].replace(' ', '')
+			pass
 		FHAB_writer.writerow(list(newDict.values()))
 
 # 2156 FHAB portal data
