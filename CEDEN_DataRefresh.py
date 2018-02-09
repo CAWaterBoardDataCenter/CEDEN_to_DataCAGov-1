@@ -80,158 +80,158 @@ def remove_Dict_Column(dictionary, removeName):
 
 #The DictionaryFixer creates custom dictionaries for each dataset since not all columns are present or have the same
 # name between datasets. Ex: Water chemistry has a "ProgramName" column while all of the other datasets use "Program"
-# the Custom dictionary is called Codes_Dict_Alt and the ".pop" deletes unwanted keys. If you see a key error,
+# the Custom dictionary is called Mod_CodeColumns and the ".pop" deletes unwanted keys. If you see a key error,
 # check to see if your dataset has a column with that same name. If it is different, rename using rename_Dict_Column.
 #  If it doesn't exist, use ".pop" to remove it as below.
-def DictionaryFixer(Codes_Dict, filename ):
-	Codes_Dict_Alt = Codes_Dict.copy()
+def DictionaryFixer(CodeColumns, filename ):
+	Mod_CodeColumns = CodeColumns.copy()
 	if filename == 'WQX_Stations':
 		################################## Delete #################
-		remove_Dict_Column(Codes_Dict_Alt, "Analyte")
-		remove_Dict_Column(Codes_Dict_Alt, "Result")
-		remove_Dict_Column(Codes_Dict_Alt, "MatrixName")
-		remove_Dict_Column(Codes_Dict_Alt, "ResultsReplicate")
-		remove_Dict_Column(Codes_Dict_Alt, "QACode")
-		remove_Dict_Column(Codes_Dict_Alt, "BatchVerification")
-		remove_Dict_Column(Codes_Dict_Alt, "ResultQualCode")
-		remove_Dict_Column(Codes_Dict_Alt, "Latitude")
-		remove_Dict_Column(Codes_Dict_Alt, "SampleTypeCode")
-		remove_Dict_Column(Codes_Dict_Alt, "SampleDate")
-		remove_Dict_Column(Codes_Dict_Alt, "ProgramName")
-		remove_Dict_Column(Codes_Dict_Alt, "CollectionReplicate")
+		remove_Dict_Column(Mod_CodeColumns, "Analyte")
+		remove_Dict_Column(Mod_CodeColumns, "Result")
+		remove_Dict_Column(Mod_CodeColumns, "MatrixName")
+		remove_Dict_Column(Mod_CodeColumns, "ResultsReplicate")
+		remove_Dict_Column(Mod_CodeColumns, "QACode")
+		remove_Dict_Column(Mod_CodeColumns, "BatchVerification")
+		remove_Dict_Column(Mod_CodeColumns, "ResultQualCode")
+		remove_Dict_Column(Mod_CodeColumns, "Latitude")
+		remove_Dict_Column(Mod_CodeColumns, "SampleTypeCode")
+		remove_Dict_Column(Mod_CodeColumns, "SampleDate")
+		remove_Dict_Column(Mod_CodeColumns, "ProgramName")
+		remove_Dict_Column(Mod_CodeColumns, "CollectionReplicate")
 	if filename == 'BenthicData':
 		################# Rename #################
-		rename_Dict_Column(Codes_Dict_Alt, oldName="SampleTypeCode", Newname="SampleType")
-		rename_Dict_Column(Codes_Dict_Alt, oldName="ResultQualCode", Newname="ResQualCode")
+		rename_Dict_Column(Mod_CodeColumns, oldName="SampleTypeCode", Newname="SampleType")
+		rename_Dict_Column(Mod_CodeColumns, oldName="ResultQualCode", Newname="ResQualCode")
 		################################## Delete #################
-		remove_Dict_Column(Codes_Dict_Alt, "Analyte")
-		remove_Dict_Column(Codes_Dict_Alt, "Result")
-		remove_Dict_Column(Codes_Dict_Alt, "MatrixName")
-		remove_Dict_Column(Codes_Dict_Alt, "ResultsReplicate")
-		remove_Dict_Column(Codes_Dict_Alt, "QACode")
-		remove_Dict_Column(Codes_Dict_Alt, "BatchVerification")
-		remove_Dict_Column(Codes_Dict_Alt, "Datum")
+		remove_Dict_Column(Mod_CodeColumns, "Analyte")
+		remove_Dict_Column(Mod_CodeColumns, "Result")
+		remove_Dict_Column(Mod_CodeColumns, "MatrixName")
+		remove_Dict_Column(Mod_CodeColumns, "ResultsReplicate")
+		remove_Dict_Column(Mod_CodeColumns, "QACode")
+		remove_Dict_Column(Mod_CodeColumns, "BatchVerification")
+		remove_Dict_Column(Mod_CodeColumns, "Datum")
 	if filename == 'TissueData':
 		################# Rename #################
-		rename_Dict_Column(Codes_Dict_Alt, oldName="MatrixName", Newname="Matrix")
-		rename_Dict_Column(Codes_Dict_Alt, oldName="ResultsReplicate", Newname="ResultReplicate")
+		rename_Dict_Column(Mod_CodeColumns, oldName="MatrixName", Newname="Matrix")
+		rename_Dict_Column(Mod_CodeColumns, oldName="ResultsReplicate", Newname="ResultReplicate")
 		################################## Delete #################
-		remove_Dict_Column(Codes_Dict_Alt, "ResultQualCode")
+		remove_Dict_Column(Mod_CodeColumns, "ResultQualCode")
 	if filename == 'WaterChemistryData':
 		################# Rename #################
-		rename_Dict_Column(Codes_Dict_Alt, oldName="ProgramName", Newname="Program")
+		rename_Dict_Column(Mod_CodeColumns, oldName="ProgramName", Newname="Program")
 	if filename == 'ToxicityData':
 		################# Rename #################
-		rename_Dict_Column(Codes_Dict_Alt, oldName="ProgramName", Newname="Program")
-		rename_Dict_Column(Codes_Dict_Alt, oldName="BatchVerification", Newname="BatchVerificationCode")
+		rename_Dict_Column(Mod_CodeColumns, oldName="ProgramName", Newname="Program")
+		rename_Dict_Column(Mod_CodeColumns, oldName="BatchVerification", Newname="BatchVerificationCode")
 		################################## Delete #################
-		remove_Dict_Column(Codes_Dict_Alt, "ResultsReplicate")
+		remove_Dict_Column(Mod_CodeColumns, "ResultsReplicate")
 	if filename == 'HabitatData':
 		################# Rename #################
-		rename_Dict_Column(Codes_Dict_Alt, oldName="ProgramName", Newname="Program")
+		rename_Dict_Column(Mod_CodeColumns, oldName="ProgramName", Newname="Program")
 		################################## Delete #################
-		remove_Dict_Column(Codes_Dict_Alt, "ResultsReplicate")
-		remove_Dict_Column(Codes_Dict_Alt, "Result")
-		remove_Dict_Column(Codes_Dict_Alt, "BatchVerification")
+		remove_Dict_Column(Mod_CodeColumns, "ResultsReplicate")
+		remove_Dict_Column(Mod_CodeColumns, "Result")
+		remove_Dict_Column(Mod_CodeColumns, "BatchVerification")
 	if filename == 'CyanoToxinData':
 		################# Rename #################
-		rename_Dict_Column(Codes_Dict_Alt, oldName="BatchVerification", Newname='BatchVerificationCode')
-		rename_Dict_Column(Codes_Dict_Alt, oldName="ResultQualCode", Newname="ResQualCode")
-		rename_Dict_Column(Codes_Dict_Alt, oldName="ResultsReplicate", Newname="Replicate")
-		rename_Dict_Column(Codes_Dict_Alt, oldName="Analyte", Newname="AnalyteName")
+		rename_Dict_Column(Mod_CodeColumns, oldName="BatchVerification", Newname='BatchVerificationCode')
+		rename_Dict_Column(Mod_CodeColumns, oldName="ResultQualCode", Newname="ResQualCode")
+		rename_Dict_Column(Mod_CodeColumns, oldName="ResultsReplicate", Newname="Replicate")
+		rename_Dict_Column(Mod_CodeColumns, oldName="Analyte", Newname="AnalyteName")
 		################################## Delete #################
-		remove_Dict_Column(Codes_Dict_Alt, "ProgramName")
-		remove_Dict_Column(Codes_Dict_Alt, "CollectionReplicate")
+		remove_Dict_Column(Mod_CodeColumns, "ProgramName")
+		remove_Dict_Column(Mod_CodeColumns, "CollectionReplicate")
 	if filename == 'IR_ToxicityData':
 		################# Rename #################
-		rename_Dict_Column(Codes_Dict_Alt, oldName="ResultQualCode", Newname="ResQualCode")
-		rename_Dict_Column(Codes_Dict_Alt, oldName="ProgramName", Newname="Program")
-		rename_Dict_Column(Codes_Dict_Alt, oldName="Latitude", Newname="TargetLatitude")
+		rename_Dict_Column(Mod_CodeColumns, oldName="ResultQualCode", Newname="ResQualCode")
+		rename_Dict_Column(Mod_CodeColumns, oldName="ProgramName", Newname="Program")
+		rename_Dict_Column(Mod_CodeColumns, oldName="Latitude", Newname="TargetLatitude")
 		#Batch verification exists but should not be used for IR as of 1/25/2018
-		#rename_Dict_Column(Codes_Dict_Alt, oldName="BatchVerification", Newname="BatchVerificationCode")
+		#rename_Dict_Column(Mod_CodeColumns, oldName="BatchVerification", Newname="BatchVerificationCode")
 		################################## Delete #################
-		remove_Dict_Column(Codes_Dict_Alt, "ResultsReplicate")
+		remove_Dict_Column(Mod_CodeColumns, "ResultsReplicate")
 		# Batch verification exists but should not be used for IR as of 1/25/2018
-		remove_Dict_Column(Codes_Dict_Alt, "BatchVerification")
-		remove_Dict_Column(Codes_Dict_Alt, "Datum")
+		remove_Dict_Column(Mod_CodeColumns, "BatchVerification")
+		remove_Dict_Column(Mod_CodeColumns, "Datum")
 	if filename == 'IR_BenthicData':
 		################# Rename #################
-		rename_Dict_Column(Codes_Dict_Alt, oldName="ResultQualCode", Newname="ResQualCode")
-		rename_Dict_Column(Codes_Dict_Alt, oldName="SampleTypeCode", Newname="SampleType")
-		rename_Dict_Column(Codes_Dict_Alt, oldName="Latitude", Newname="TargetLatitude")
+		rename_Dict_Column(Mod_CodeColumns, oldName="ResultQualCode", Newname="ResQualCode")
+		rename_Dict_Column(Mod_CodeColumns, oldName="SampleTypeCode", Newname="SampleType")
+		rename_Dict_Column(Mod_CodeColumns, oldName="Latitude", Newname="TargetLatitude")
 		################################## Delete #################
-		remove_Dict_Column(Codes_Dict_Alt, "Analyte")
-		remove_Dict_Column(Codes_Dict_Alt, "Result")
-		remove_Dict_Column(Codes_Dict_Alt, "MatrixName")
-		remove_Dict_Column(Codes_Dict_Alt, "ResultsReplicate")
-		remove_Dict_Column(Codes_Dict_Alt, "QACode")
-		remove_Dict_Column(Codes_Dict_Alt, "BatchVerification")
-		remove_Dict_Column(Codes_Dict_Alt, "Datum")
+		remove_Dict_Column(Mod_CodeColumns, "Analyte")
+		remove_Dict_Column(Mod_CodeColumns, "Result")
+		remove_Dict_Column(Mod_CodeColumns, "MatrixName")
+		remove_Dict_Column(Mod_CodeColumns, "ResultsReplicate")
+		remove_Dict_Column(Mod_CodeColumns, "QACode")
+		remove_Dict_Column(Mod_CodeColumns, "BatchVerification")
+		remove_Dict_Column(Mod_CodeColumns, "Datum")
 	if filename == 'IR_WaterChemistryData':
 		################# Rename #################
-		rename_Dict_Column(Codes_Dict_Alt, oldName="ResultQualCode", Newname="ResQualCode")
-		rename_Dict_Column(Codes_Dict_Alt, oldName="Analyte", Newname="AnalyteName")
-		rename_Dict_Column(Codes_Dict_Alt, oldName="ResultsReplicate", Newname="Replicate")
-		rename_Dict_Column(Codes_Dict_Alt, oldName="Latitude", Newname="TargetLatitude")
+		rename_Dict_Column(Mod_CodeColumns, oldName="ResultQualCode", Newname="ResQualCode")
+		rename_Dict_Column(Mod_CodeColumns, oldName="Analyte", Newname="AnalyteName")
+		rename_Dict_Column(Mod_CodeColumns, oldName="ResultsReplicate", Newname="Replicate")
+		rename_Dict_Column(Mod_CodeColumns, oldName="Latitude", Newname="TargetLatitude")
 		################################## Delete #################
-		remove_Dict_Column(Codes_Dict_Alt, "BatchVerification")
-		remove_Dict_Column(Codes_Dict_Alt, "CollectionReplicate")
-		remove_Dict_Column(Codes_Dict_Alt, "Datum")
+		remove_Dict_Column(Mod_CodeColumns, "BatchVerification")
+		remove_Dict_Column(Mod_CodeColumns, "CollectionReplicate")
+		remove_Dict_Column(Mod_CodeColumns, "Datum")
 	if filename == 'IR_STORET_2010':
 		################# Rename #################
-		rename_Dict_Column(Codes_Dict_Alt, oldName="Analyte", Newname="AnalyteName")
-		rename_Dict_Column(Codes_Dict_Alt, oldName="ResultQualCode", Newname="ResQualCode")
-		rename_Dict_Column(Codes_Dict_Alt, oldName="ResultsReplicate", Newname="Replicate")
-		rename_Dict_Column(Codes_Dict_Alt, oldName="Latitude", Newname="TargetLatitude")
+		rename_Dict_Column(Mod_CodeColumns, oldName="Analyte", Newname="AnalyteName")
+		rename_Dict_Column(Mod_CodeColumns, oldName="ResultQualCode", Newname="ResQualCode")
+		rename_Dict_Column(Mod_CodeColumns, oldName="ResultsReplicate", Newname="Replicate")
+		rename_Dict_Column(Mod_CodeColumns, oldName="Latitude", Newname="TargetLatitude")
 		################################## Delete #################
 		#  Batch verification exists but should not be used for IR as of 1/25/2018
-		remove_Dict_Column(Codes_Dict_Alt, "BatchVerification")
-		remove_Dict_Column(Codes_Dict_Alt, "CollectionReplicate")
-		remove_Dict_Column(Codes_Dict_Alt, "Datum")
+		remove_Dict_Column(Mod_CodeColumns, "BatchVerification")
+		remove_Dict_Column(Mod_CodeColumns, "CollectionReplicate")
+		remove_Dict_Column(Mod_CodeColumns, "Datum")
 	if filename == 'IR_STORET_2012':
 		################# Rename #################
-		rename_Dict_Column(Codes_Dict_Alt, oldName="Analyte", Newname="AnalyteName")
-		rename_Dict_Column(Codes_Dict_Alt, oldName="ResultQualCode", Newname="ResQualCode")
-		rename_Dict_Column(Codes_Dict_Alt, oldName="ResultsReplicate", Newname="Replicate")
-		rename_Dict_Column(Codes_Dict_Alt, oldName="Latitude", Newname="TargetLatitude")
+		rename_Dict_Column(Mod_CodeColumns, oldName="Analyte", Newname="AnalyteName")
+		rename_Dict_Column(Mod_CodeColumns, oldName="ResultQualCode", Newname="ResQualCode")
+		rename_Dict_Column(Mod_CodeColumns, oldName="ResultsReplicate", Newname="Replicate")
+		rename_Dict_Column(Mod_CodeColumns, oldName="Latitude", Newname="TargetLatitude")
 		################################## Delete #################
 		#  Batch verification exists but should not be used for IR as of 1/25/2018
-		remove_Dict_Column(Codes_Dict_Alt, "BatchVerification")
-		remove_Dict_Column(Codes_Dict_Alt, "CollectionReplicate")
-		remove_Dict_Column(Codes_Dict_Alt, "Datum")
+		remove_Dict_Column(Mod_CodeColumns, "BatchVerification")
+		remove_Dict_Column(Mod_CodeColumns, "CollectionReplicate")
+		remove_Dict_Column(Mod_CodeColumns, "Datum")
 	if filename == 'IR_NWIS':
 		################# Rename #################
-		rename_Dict_Column(Codes_Dict_Alt, oldName="Analyte", Newname="AnalyteName")
-		rename_Dict_Column(Codes_Dict_Alt, oldName="ResultQualCode", Newname="ResQualCode")
-		rename_Dict_Column(Codes_Dict_Alt, oldName="ResultsReplicate", Newname="Replicate")
-		rename_Dict_Column(Codes_Dict_Alt, oldName="Latitude", Newname="TargetLatitude")
+		rename_Dict_Column(Mod_CodeColumns, oldName="Analyte", Newname="AnalyteName")
+		rename_Dict_Column(Mod_CodeColumns, oldName="ResultQualCode", Newname="ResQualCode")
+		rename_Dict_Column(Mod_CodeColumns, oldName="ResultsReplicate", Newname="Replicate")
+		rename_Dict_Column(Mod_CodeColumns, oldName="Latitude", Newname="TargetLatitude")
 		################################## Delete #################
 		#  Batch verification exists but should not be used for IR as of 1/25/2018
-		remove_Dict_Column(Codes_Dict_Alt, "BatchVerification")
-		remove_Dict_Column(Codes_Dict_Alt, "CollectionReplicate")
-		remove_Dict_Column(Codes_Dict_Alt, "Datum")
+		remove_Dict_Column(Mod_CodeColumns, "BatchVerification")
+		remove_Dict_Column(Mod_CodeColumns, "CollectionReplicate")
+		remove_Dict_Column(Mod_CodeColumns, "Datum")
 	if filename == 'IR_Field':
 		################# Rename #################
-		rename_Dict_Column(Codes_Dict_Alt, oldName="ResultQualCode", Newname="ResQualCode")
-		rename_Dict_Column(Codes_Dict_Alt, oldName="ResultsReplicate", Newname="ResultReplicate")
-		rename_Dict_Column(Codes_Dict_Alt, oldName="Latitude", Newname="TargetLatitude")
+		rename_Dict_Column(Mod_CodeColumns, oldName="ResultQualCode", Newname="ResQualCode")
+		rename_Dict_Column(Mod_CodeColumns, oldName="ResultsReplicate", Newname="ResultReplicate")
+		rename_Dict_Column(Mod_CodeColumns, oldName="Latitude", Newname="TargetLatitude")
 		# IR_Field has Analyte and AnalyteName columns
-		Codes_Dict_Alt["AnalyteName"] = Codes_Dict_Alt["Analyte"]
+		Mod_CodeColumns["AnalyteName"] = Mod_CodeColumns["Analyte"]
 		################################## Delete #################
 		#  Batch verification exists but should not be used for IR as of 1/25/2018
-		remove_Dict_Column(Codes_Dict_Alt, "BatchVerification")
-		remove_Dict_Column(Codes_Dict_Alt, "Datum")
+		remove_Dict_Column(Mod_CodeColumns, "BatchVerification")
+		remove_Dict_Column(Mod_CodeColumns, "Datum")
 	if filename == 'IR_TissueData':
 		################# Rename #################
-		rename_Dict_Column(Codes_Dict_Alt, oldName="ResultQualCode", Newname="ResQualCode")
-		rename_Dict_Column(Codes_Dict_Alt, oldName="ResultsReplicate", Newname="ResultReplicate")
-		rename_Dict_Column(Codes_Dict_Alt, oldName="MatrixName", Newname="Matrix")
-		rename_Dict_Column(Codes_Dict_Alt, oldName="Latitude", Newname="TargetLatitude")
+		rename_Dict_Column(Mod_CodeColumns, oldName="ResultQualCode", Newname="ResQualCode")
+		rename_Dict_Column(Mod_CodeColumns, oldName="ResultsReplicate", Newname="ResultReplicate")
+		rename_Dict_Column(Mod_CodeColumns, oldName="MatrixName", Newname="Matrix")
+		rename_Dict_Column(Mod_CodeColumns, oldName="Latitude", Newname="TargetLatitude")
 		################################## Delete #################
 		#  Batch verification exists but should not be used for IR as of 1/25/2018
-		remove_Dict_Column(Codes_Dict_Alt, "BatchVerification")
-		remove_Dict_Column(Codes_Dict_Alt, "Datum")
-	return Codes_Dict_Alt
+		remove_Dict_Column(Mod_CodeColumns, "BatchVerification")
+		remove_Dict_Column(Mod_CodeColumns, "Datum")
+	return Mod_CodeColumns
 ###########################################################################################################################
 #########################        Dictionary of code fixer 	above	###########################
 ###########################################################################################################################
@@ -313,100 +313,105 @@ def data_retrieval(tables, StartYear, EndYear, saveLocation, sep, extension, For
 					for row in cursor:
 						row = [str(word).replace('None', '') for word in row]
 						filtered = [decodeAndStrip(t) for t in list(row)]
-						newDict = dict(zip(columns, filtered))
+						recordDict = dict(zip(columns, filtered))
 						try:
-							long = float(newDict[Longitude])
+							long = float(recordDict[Longitude])
 							if long > 0:
-								newDict[Longitude] = -long
+								recordDict[Longitude] = -long
 						except ValueError:
 							pass
-						writer.writerow(list(newDict.values()))
+						writer.writerow(list(recordDict.values()))
 				else:
-					Codes_Dict_Alt = DictionaryFixer(Codes_Dict, filename)
+					Mod_CodeColumns = DictionaryFixer(CodeColumns, filename)
 					for row in cursor:
 						filtered = [decodeAndStrip(t).replace('None', '') for t in list(row)]
 						while len(columns) > len(filtered):
 							filtered += ['']
-						newDict = dict(zip(columns, filtered))
+						recordDict = dict(zip(columns, filtered))
 						try:
-							long = float(newDict[Longitude])
+							long = float(recordDict[Longitude])
 							if long > 0:
-								newDict[Longitude] = -long
+								recordDict[Longitude] = -long
 						except ValueError:
 							pass
-						DQ = []
-						QInd = []
 						#####  IR and Benthic datasets do not need datum added  #####
 						if For_IR or filename == 'BenthicData':
 							pass
 						else:
-							if newDict['StationCode'] in WQX_Sites:
-								newDict['Datum'] = WQX_Sites[newDict['StationCode']]
+							if recordDict['StationCode'] in WQX_Sites:
+								recordDict['Datum'] = WQX_Sites[recordDict['StationCode']]
 							else:
-								newDict['Datum'] = 'NR'
+								recordDict['Datum'] = 'NR'
 						#####  ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^  #####
-						for codeCol in list(Codes_Dict_Alt):
+						DQ = []
+						for codeCol in list(Mod_CodeColumns):
 							if codeCol == 'QACode':
-								for codeVal in newDict[codeCol].split(','):
-									if codeVal in list(Codes_Dict_Alt[codeCol]):
-										DQ += [Codes_Dict_Alt[codeCol][codeVal]]
+								for codeVal in recordDict[codeCol].split(','):
+									if codeVal in list(Mod_CodeColumns[codeCol]):
+										DQ += [Mod_CodeColumns[codeCol][codeVal]]
 							elif codeCol == 'Analyte' or codeCol == 'AnalyteName':
-								if bool(re.search('[Ss]urrogate', newDict[codeCol])):
+								if bool(re.search('[Ss]urrogate', recordDict[codeCol])):
 									DQ += [0]
 							elif codeCol == 'ResultQualCode' or codeCol == 'ResQualCode':
-								for codeVal in [newDict[codeCol]]:
+								for codeVal in [recordDict[codeCol]]:
 									if table == 'IR2018_WQ' or table == 'IR2018_Tissue' and codeVal == 'DNQ':
-										yearTest = int(newDict['SampleDate'][-4:])
+										yearTest = int(recordDict['SampleDate'][-4:])
 										if isinstance(yearTest, int) and yearTest < 2008:
 											print("This year was changed: %d" % yearTest)
 											DQ += [6]
-									elif codeVal == 'DNQ' and int(newDict['SampleDate'][:4]) < 2008:
+									elif codeVal == 'DNQ' and int(recordDict['SampleDate'][:4]) < 2008:
 										DQ += [6]
 									elif codeVal == 'ND':
 										# the Benthic dataset does not have a result column
 										# we therefore treat the exception of a ND value
 										# as a passed record.
 										try:
-											RQC = newDict['Result']
+											RQC = recordDict['Result']
 											if not isinstance(RQC, str) and RQC > 0:
 												DQ += [6]
 											else:
 												DQ += [1]
 										except KeyError:
 											DQ += [1]
-									elif codeVal in list(Codes_Dict_Alt[codeCol]):
-										DQ += [Codes_Dict_Alt[codeCol][codeVal]]
+									elif codeVal in list(Mod_CodeColumns[codeCol]):
+										DQ += [Mod_CodeColumns[codeCol][codeVal]]
 							else:
-								for codeVal in [newDict[codeCol]]:
-									if codeVal in list(Codes_Dict_Alt[codeCol]):
-										DQ += [Codes_Dict_Alt[codeCol][codeVal]]
+								for codeVal in [recordDict[codeCol]]:
+									if codeVal in list(Mod_CodeColumns[codeCol]):
+										DQ += [Mod_CodeColumns[codeCol][codeVal]]
 						try:
 							MaxDQ = max(DQ)
 						except ValueError:
 							MaxDQ = 7
 							DQ += [MaxDQ, ]
 						## This marks the beginning of the Quality indicator column value generator
-						for codeCol in list(Codes_Dict_Alt):
+						QInd = []
+						for codeCol in list(Mod_CodeColumns):
+							ValuesEqMaxDQ = []
 							if codeCol == 'QACode':
-								codeValList = newDict[codeCol].split(',')
+								codeValList = recordDict[codeCol].split(',')
 							else:
-								codeValList = newDict[codeCol]
+								codeValList = recordDict[codeCol]
 							for codeVal in codeValList:
-								if not MaxDQ==0 or not MaxDQ==1 and MaxDQ == Codes_Dict_Alt[codeCol][codeVal]:
-									QInd += [codeCol, ]
+								if MaxDQ == recordDict[codeCol][codeVal]:
+									ValuesEqMaxDQ += [codeVal, ]
+							if not ValuesEqMaxDQ == []:
+								QInd += [codeCol + ':' + ','.join(str(value) for value in ValuesEqMaxDQ)]
 						# to remove potential duplicate values generated by the Quality indicator we use the set
 						# structure. We then convert this to a string and store it to the record's DataQuality
 						# Indicator field.
-						QInd = ', '.join(str(w) for w in set(QInd))
+						#QInd = ' '.join(str(w) for w in set(QInd))
 						if min(DQ) == 0:
-							newDict['DataQuality'] = DQ_Codes[0]
+							recordDict['DataQuality'] = DQ_Codes[0]
+						elif max(DQ) == 1:
+							recordDict['DataQuality'] = DQ_Codes[1]
 						else:
-							newDict['DataQuality'] = DQ_Codes[MaxDQ]
-							newDict['DataQualityIndicator'] = QInd
-						writer.writerow(list(newDict.values()))
-						if newDict['StationCode'] not in AllSites:
-							AllSites[newDict['StationCode']] = [newDict['StationName'], newDict[Latitude],
-							                                    newDict[Longitude], newDict['Datum'], ]
+							recordDict['DataQuality'] = DQ_Codes[MaxDQ]
+							recordDict['DataQualityIndicator'] = [' '.join(str(ColVal) for ColVal in QInd)]
+						writer.writerow(list(recordDict.values()))
+						if recordDict['StationCode'] not in AllSites:
+							AllSites[recordDict['StationCode']] = [recordDict['StationName'], recordDict[Latitude],
+							                                    recordDict[Longitude], recordDict['Datum'], ]
 				print("Finished data retrieval for the %s table" % table)
 	return writtenFiles, AllSites
 
@@ -551,9 +556,9 @@ if __name__ == "__main__":
 	Datum_list = {"NR": 3, }
 	DQ_Codes = {0: "MetaData, QC record", 1: "Passed QC", 2: "Some review needed", 3: "Spatial Accuracy Unknown",
 	            4: "Extensive review needed", 5: "Unknown data quality", 6: "Reject record", 7: 'Error'}
-	# the Codes_Dict variable is a dictionary template for each dataset. Some datasets do not have all of these columns
+	# the CodeColumns variable is a dictionary template for each dataset. Some datasets do not have all of these columns
 	# and as such have to be removed with the DictionaryFixer definition below.
-	Codes_Dict = {"QACode": QA_Code_list, "BatchVerification": BatchVerificationCode_list,
+	CodeColumns = {"QACode": QA_Code_list, "BatchVerification": BatchVerificationCode_list,
 	              "ResultQualCode": ResultQualCode_list, "Latitude": Latitude_list, "Result": Result_list,
 	              "StationCode": StationCode_list, "SampleTypeCode": SampleTypeCode_list, "SampleDate": SampleDate_list,
 	              "ProgramName": ProgramName_list, "Analyte": Analyte_list, "MatrixName": MatrixName_list,
