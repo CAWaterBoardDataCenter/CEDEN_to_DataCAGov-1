@@ -15,13 +15,17 @@ Purpose:
 	function.
 
 How to use this script:
+	You must be connected to the internal waternet
 	From a powershell prompt (windows), call python and specify
 	the complete path to this file. Below is an example, where XXXXXXX should be replaced
-	with the filename and the path should be specific to the file location:
-	python C:\\Users\\AHill\\Downloads\\XXXXXXX.py
+	with the filename:
+	python C:\\Users\\User***\\Downloads\\XXXXXXX.py
+	You must also set the SERVER, UID as environmental variables in your windows account
+	You may also have to set the SQL driver on the pyodbc.connect line to your available drivers.
+		Use pyodbc.drivers() to see a list of available drivers.
 
 Prerequisites:
-	Windows platform (not strictly requirement but I was unable to get this library
+	Windows platform (not strictly a requirement but I was unable to get the pyodbc library
 		working on a mac... I tried)
 	Python 3.X
 	pyodbc library for python.  See https://github.com/mkleehammer/pyodbc
@@ -41,10 +45,16 @@ import string
 from dkan.client import DatasetAPI
 import getpass
 
-
-printable = set(string.printable) - set('|"\'`\t\r\n\f\v')
+###########################
+############   CHange these ##########
+###########################
 SERVER = os.environ.get('FHAB_Server')
 UID = os.environ.get('FHAB_User')
+###########################
+############   CHange these ##########
+###########################
+
+printable = set(string.printable) - set('|"\'`\t\r\n\f\v')
 ### you can change this to point to a different location
 first = 'C:\\Users\%s\Documents' % getpass.getuser()
 path = os.path.join(first, 'FHAB_BloomReport')
