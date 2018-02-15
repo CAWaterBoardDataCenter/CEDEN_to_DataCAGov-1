@@ -94,7 +94,7 @@ with open(file, 'w', newline='', encoding='utf8') as writer:
 	dw.writeheader()
 	FHAB_writer = csv.writer(writer, csv.QUOTE_MINIMAL, delimiter=sep, lineterminator='\n')
 	for row in cursor:
-		row = [str(word).replace('None', '') for word in row]
+		row = [str(word) if word is not None else '' for word in row]
 		filtered = [decodeAndStrip(t) for t in list(row)]
 		newDict = dict(zip(columns, filtered))
 		try:
