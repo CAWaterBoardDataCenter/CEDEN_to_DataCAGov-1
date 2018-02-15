@@ -64,7 +64,7 @@ if not os.path.isdir(path):
 FHAB = 'FHAB_BloomReport'
 ###   Ideally data.ca.gov will be able to generate data preview for tab delimited txt files... until then
 ### extension type. Data.ca.gov requires csv for preview functionality
-ext = '.csv'
+ext = '.tsv'
 ### delimiter type. commas are not a good choice since field values are separated by commas
 sep = '|'
 file = os.path.join(path, FHAB + ext)
@@ -92,7 +92,7 @@ columns = [desc[0] for desc in cursor.description]
 with open(file, 'w', newline='', encoding='utf8') as writer:
 	dw = csv.DictWriter(writer, fieldnames=columns, delimiter=sep, lineterminator='\n')
 	dw.writeheader()
-	FHAB_writer = csv.writer(writer, csv.QUOTE_MINIMAL, delimiter=sep, lineterminator='\n')
+	FHAB_writer = csv.writer(writer, csv.QUOTE_MINIMAL, delimiter='\t', lineterminator='\n')
 	for row in cursor:
 		row = [str(word) if word is not None else '' for word in row]
 		filtered = [decodeAndStrip(t) for t in list(row)]
