@@ -90,7 +90,7 @@ sql = "SELECT dbo.AlgaeBloomReport.AlgaeBloomReportID, dbo.AlgaeBloomReport.Regi
 cursor.execute(sql)
 columns = [desc[0] for desc in cursor.description]
 with open(file, 'w', newline='', encoding='utf8') as writer:
-	dw = csv.DictWriter(writer, fieldnames=columns, delimiter=sep, lineterminator='\n')
+	dw = csv.DictWriter(writer, fieldnames=columns, delimiter='\t', lineterminator='\n')
 	dw.writeheader()
 	FHAB_writer = csv.writer(writer, csv.QUOTE_MINIMAL, delimiter='\t', lineterminator='\n')
 	for row in cursor:
