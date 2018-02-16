@@ -46,13 +46,22 @@ from dkan.client import DatasetAPI
 import getpass
 
 ###########################
-############   CHange these ##########
+############   CHange these for connecting to internal water board Datamart ##########
 ###########################
 SERVER = os.environ.get('FHAB_Server')
 UID = os.environ.get('FHAB_User')
+
+###########################
+############   CHange these for connecting to data.ca.gov ##########
+###########################
+user = os.environ.get('DCG_user')
+password = os.environ.get('DCG_pw')
+URI = os.environ.get('URI')
+
 ###########################
 ############   CHange these ##########
 ###########################
+
 
 printable = set(string.printable) - set('|"\'`\t\r\n\f\v')
 ### you can change this to point to a different location
@@ -107,10 +116,6 @@ with open(file, 'w', newline='', encoding='utf8') as writer:
 
 # 2156 FHAB portal data
 NODE = 2156
-
-user = os.environ.get('DCG_user')
-password = os.environ.get('DCG_pw')
-URI = os.environ.get('URI')
 
 api = DatasetAPI(URI, user, password, debug=False)
 
