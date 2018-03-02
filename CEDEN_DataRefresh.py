@@ -349,6 +349,11 @@ def data_retrieval(tables, StartYear, EndYear, saveLocation, sep, extension, For
 								for codeVal in recordDict[codeCol].split(','):
 									if codeVal in list(Mod_CodeColumns[codeCol]):
 										DQ += [Mod_CodeColumns[codeCol][codeVal]]
+							if codeCol == 'StationCode':
+								if bool(re.search('000NONPJ', recordDict[codeCol])):
+									DQ += [0]
+								elif codeVal in list(Mod_CodeColumns[codeCol]):
+									DQ += [Mod_CodeColumns[codeCol][codeVal]]
 							elif codeCol == 'Analyte' or codeCol == 'AnalyteName':
 								if bool(re.search('[Ss]urrogate', recordDict[codeCol])):
 									DQ += [0]
@@ -493,8 +498,8 @@ if __name__ == "__main__":
 	printable = set(string.printable) - set('|"\'\t\r\n\f\v')
 	# What type of delimiter should files have? "|" or "\t" are common
 	if not For_IR:
-		sep = '\t'
-		extension = '.tsv'
+		sep = ','
+		extension = '.csv'
 	else:
 		sep = '\t'
 		extension = '.txt'
@@ -559,8 +564,7 @@ if __name__ == "__main__":
 	Latitude_list = {"-88": 0, "": 6, '0.0': 6, }
 	Result_list = {"": 1, }
 	StationCode_list = {"LABQA": 0, "LABQA_SWAMP": 0, "000NONPJ": 0, "FIELDQA": 0, "Non Project QA Sample": 0,
-	                    "Laboratory QA Sample": 0, "Field QA sample": 0, "FIELDQA SWAMP": 0, "000NONSW": 0,
-	                    "000NONPJ%": 0, }
+	                    "Laboratory QA Sample": 0, "Field QA sample": 0, "FIELDQA SWAMP": 0, "000NONSW": 0, }
 	SampleTypeCode_list = {"LabBlank": 0, "CompBLDup": 0, "LCS": 0, "CRM": 0, "FieldBLDup_Grab": 0, "FieldBLDup_Int": 0,
 	                       "FieldBLDup": 0, "FieldBlank": 0, "TravelBlank": 0, "EquipBlank": 0, "DLBlank": 0,
 	                       "FilterBlank": 0, "MS1": 0, "MS2": 0, "MS3": 0, "MSBLDup": 0, }
