@@ -42,6 +42,8 @@ import re
 from datetime import datetime
 import string
 import getpass
+import os, csv
+from dkan.client import DatasetAPI
 
 
 ##### These are not currently in use as we have decided not to calculate RB values for each site
@@ -63,7 +65,7 @@ import getpass
 
 # decodeAndStrip takes a string and filters each character through the printable variable. It returns a filtered string.
 def decodeAndStrip(t):
-	filter1 = ''.join(filter(lambda x: x in printable, str(t).replace("'", "`")))
+	filter1 = ''.join(filter(lambda x: x in printable, str(t)))
 	return filter1
 
 ###########################################################################################################################
@@ -442,7 +444,8 @@ def data_retrieval(tables, StartYear, EndYear, saveLocation, sep, extension, For
 ####################################################################################
 
 
-def selectByAnalyte(path, fileName, analytes, newFileName, field_filter, sep, For_IR=False):
+def selectByAnalyte(path, fileName, analytes, newFileName, field_filter, sep,
+                    For_IR=False):
 	file = os.path.join(path, fileName)
 	fileOut = os.path.join(path, newFileName)
 	Analyte_Sites = {}
@@ -464,7 +467,6 @@ def selectByAnalyte(path, fileName, analytes, newFileName, field_filter, sep, Fo
 					count += 1
 					continue
 				rowDict = dict(zip(columns, row))
-				#print(rowDict)
 				if rowDict[field_filter] in analytes:
 					writer.writerow(row)
 					if rowDict['StationCode'] not in Analyte_Sites:
@@ -479,6 +481,8 @@ def selectByAnalyte(path, fileName, analytes, newFileName, field_filter, sep, Fo
 			AllSites_dw.writeheader()
 			for key, value in Analyte_Sites.items():
 				Sites_writer.writerow([value[0], key, value[1], value[2], value[3]])
+	return newFileName, fileOut, 'Sites_for_' + newFileName, Sites
+
 
 				####################################################################################
 				############################# Select By Analyte Subset #############################
@@ -495,7 +499,7 @@ if __name__ == "__main__":
 	For_IR = False
 	#  This is the filter that every cell in each dataset gets passed through. From the "string" library, we are only
 	# allowing printable characters except pipes, quotes, tabs, returns, control breaks, etc.
-	printable = set(string.printable) - set('|"\'\t\r\n\f\v')
+	printable = set(string.printable) - set('|\"\t\r\n\f\v')
 	# What type of delimiter should files have? "|" or "\t" are common
 	if not For_IR:
 		sep = ','
@@ -599,7 +603,7 @@ if __name__ == "__main__":
 		          "IR_ToxicityData": "IR2018_Toxicity", "IR_BenthicData": "IR2018_Benthic",
 		          "IR_STORET_2010": "IR2018_Storet_2010_2012", "IR_STORET_2012": "IR2018_Storet_2012_2017",
 		          "IR_NWIS": "IR2018_NWIS", "IR_Field": "IR2018_Field", "IR_TissueData": "IR2018_Tissue", }
-		###########################################################################################################################
+	###########################################################################################################################
 	#########################        Dictionaries for QA codes above		###############################################
 	###########################################################################################################################
 
@@ -624,6 +628,7 @@ if __name__ == "__main__":
 	seconds = totalTime.seconds
 	minutes = seconds // 60
 	seconds = seconds - minutes * 60
+	FILES['All_CEDEN_Sites'] = AllSites_path
 	print("Data retrieval and processing took %d minutes and %d seconds" % (minutes, seconds))
 	# if For_IR is False, saved datasets are likely:
 	# FILES["WQX_Stations"]
@@ -646,8 +651,11 @@ if __name__ == "__main__":
 		path, fileName = os.path.split(WaterChem)
 		newFileName = 'CyanoToxins' + extension
 		column_filter = 'DW_AnalyteName'
-		selectByAnalyte(path=path, fileName=fileName, newFileName=newFileName, analytes=analytes,
+		name, location, sitesname, siteslocation = selectByAnalyte(path=path, fileName=fileName,
+		                                                          newFileName=newFileName, analytes=analytes,
 		                field_filter=column_filter, sep=sep)
+		FILES[name] = location
+		FILES[sitesname] = siteslocation
 		print("\t\tFinished writing data subset for CyanoToxins\n\n")
 		############## Subsets of WQ dataset for Cyanotoxins  ###
 
@@ -658,9 +666,11 @@ if __name__ == "__main__":
 		analytes = ['E. Coli', 'Enterococcus', 'Coliform, Total', 'Coliform, Fecal', ]
 		newFileName = 'SafeToSwim' + extension
 		column_filter = 'Analyte'
-		selectByAnalyte(path=path, fileName=fileName, newFileName=newFileName, analytes=analytes,
+		name, location, sitesname, siteslocation = selectByAnalyte(path=path, fileName=fileName, newFileName=newFileName, analytes=analytes,
 		                field_filter=column_filter, sep=sep)
-		SafeToSwim_Sites = 'SafeToSwim_Sites' + extension
+		FILES[name] = location
+		FILES[sitesname] = siteslocation
+		#SafeToSwim_Sites = 'SafeToSwim_Sites' + extension
 		print("\t\tFinished writing data subset for Safe to Swim\n\n")
 		############## Subsets of WQ dataset for Safe To Swim  ###
 
@@ -729,8 +739,10 @@ if __name__ == "__main__":
 		path, fileName = os.path.split(WaterChem)
 		newFileName = 'Pesticides' + extension
 		column_filter = 'DW_AnalyteName'
-		selectByAnalyte(path=path, fileName=fileName, newFileName=newFileName, analytes=analytes,
+		name, location, sitesname, siteslocation = selectByAnalyte(path=path, fileName=fileName, newFileName=newFileName, analytes=analytes,
 		                field_filter=column_filter, sep=sep)
+		FILES[name] = location
+		FILES[sitesname] = siteslocation
 		print("\t\tFinished writing data subset for Pesticides\n\n")
 	############## ^^^^^^^^^^^^  Subsets of datasets for Pesticides
 
@@ -751,6 +763,27 @@ if __name__ == "__main__":
 				else:
 					column_filter = 'RegionalBoardID'
 				analytes = [str(Region), ]
-				selectByAnalyte(path=path, fileName=fileName, newFileName=newFileName,
+				name, location, sitesname, siteslocation = selectByAnalyte(path=path, fileName=fileName, newFileName=newFileName,
 				                analytes=analytes, field_filter=column_filter, sep=sep, For_IR=True)
+				FILES[name] = location
+				FILES[sitesname] = siteslocation
 				print('Completed %s' % newFileName)
+	if not For_IR:
+		#### upload dataset to data.ca.gov
+		user = os.environ.get('DCG_user')
+		password = os.environ.get('DCG_pw')
+		URI = os.environ.get('URI')
+		api = DatasetAPI(URI, user, password, debug=False)
+		uploads = {FILES['BenthicData']: 431, FILES['ToxicityData']: 541, FILES['SafeToSwim.csv']: 2186,
+		           FILES['Sites_for_SafeToSwim.csv']: 2181, }
+		for file in uploads:
+			r = api.attach_file_to_node(file=file, node_id=uploads[file], field='field_upload', update=0)
+			if r.ok:
+				print("Completed uploading %s to data.ca.gov" % os.path.split(file)[1])
+				r.close()
+				del r
+			else:
+				print("something went wrong. Here is the response error code: %s " % r.status_code)
+				print(r.text)
+				r.close()
+				del r
