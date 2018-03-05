@@ -23,3 +23,6 @@ Prerequisites:
 	Python 3.X
 	pyodbc library for python.  See https://github.com/mkleehammer/pyodbc
 	dkan library for python.    See https://github.com/GetDKAN/pydkan
+
+Scripts in the "WorkingScripts" folder can be repurposed but are not supported or intended for 
+use outside of testing.
