@@ -27,7 +27,6 @@ How to use this script:
 Prerequisites:
 	Windows platform (not strictly requirement but I was unable to get this library
 		working on a mac... I tried)
-	on mac
 	Python 3.X
 	pyodbc library for python.  See https://github.com/mkleehammer/pyodbc
 	dkan library for python.    See https://github.com/GetDKAN/pydkan
