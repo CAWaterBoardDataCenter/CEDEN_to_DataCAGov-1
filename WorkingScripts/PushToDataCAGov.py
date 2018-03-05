@@ -19,11 +19,18 @@ from dkan.client import DatasetAPI
 #  431 CEDEN Benthic Data
 #  451 CEDEN Tissue Data
 # 2011 CEDEN Habitat Data
-# 1911 CEDEN Safe to Swim
+# 2186 CEDEN Safe to Swim
+# 2181 CEDEN Sites for Safe to Swim
 
 
 
-NODE = 2131
+#NODE = 2131
+
+# test for 2 GB upload
+NODE = 431
+
+# test for Habitat data.   which failed 3/1/2018 because it was larger than 2 GB?
+#NODE = 2036
 
 
 #fileWritten = FILES[1]
@@ -31,8 +38,11 @@ NODE = 2131
 user = os.environ.get('DCG_user')
 password = os.environ.get('DCG_pw')
 URI = os.environ.get('URI')
-#fileWritten = 'C:\\Users\\AHill\\Documents\\CEDEN_DataMart\\BenthicData.csv'
-fileWritten = 'C:\\Users\\AHill\\Documents\\CEDEN_DataMart\\WQX_Stations.csv'
+#URI = ('https://test.cadepttech.nucivicdata.com/')
+#fileWritten = 'C:\\Users\\AHill\\Documents\\CEDEN_Datasets\\ToxicityData.csv'
+fileWritten = 'C:\\Users\\AHill\\Documents\\CEDEN_Datasets\\BenthicData.csv'
+#fileWritten = 'C:\\Users\\AHill\\Documents\\CEDEN_Datasets\\HabitatData.csv'
+#fileWritten = 'C:\\Users\\AHill\\Documents\\CEDEN_Datasets\WaterChemistryData.csv'
 # Attach dataset data
 #try:
 	#Sign into the data.ca.gov website
