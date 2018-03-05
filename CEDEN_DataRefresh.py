@@ -240,7 +240,7 @@ def DictionaryFixer(CodeColumns, filename ):
 
 # data_retrieval is the meat of this script. It takes the tables dictionary defined above, two dates (specified
 # below), and a save location for the output files.
-def data_retrieval(tables, StartYear, EndYear, saveLocation, sep, extension, For_IR):
+def data_retrieval(tables, saveLocation, sep, extension, For_IR):
 	# initialize writtenFiles where we will store the output complete file paths in list format.
 	writtenFiles = {}
 	try:
@@ -273,9 +273,7 @@ def data_retrieval(tables, StartYear, EndYear, saveLocation, sep, extension, For
 			cursor.execute(sql)
 			columns = [desc[0].replace('TargetL', 'L') for desc in cursor.description]
 		else:
-			sql = "SELECT * FROM %s WHERE (SampleDate BETWEEN " % table + \
-		      "CONVERT(datetime, '%d-01-01') " % StartYear + \
-		      "AND CONVERT(datetime, '%d-12-31'));" % EndYear
+			sql = "SELECT * FROM %s" % table
 			cursor.execute(sql)
 			if For_IR:
 				columns = [desc[0] for desc in cursor.description]
@@ -516,10 +514,6 @@ if __name__ == "__main__":
 	# Save the data.ca.gov password associated with your UserID information to the PWD environmental variable for your
 	# account.
 	PWD = os.environ.get('PWD')
-	# 1950 is a common timestamp for Quality Control records and this value should not be changed.
-	StartYear = 1950
-	# update this year to include the most recent records.
-	EndYear = 2018
 	# Choose a location to write files locally.
 	### you can change this to point to a different location but it does automatically get your user information.
 	first = 'C:\\Users\\%s\\Documents' % getpass.getuser()
@@ -609,8 +603,7 @@ if __name__ == "__main__":
 
 	startTime = datetime.now()
 	# This line runs the functions defined above.
-	FILES, AllSites = data_retrieval(tables, StartYear,
-	                                 EndYear, saveLocation, sep=sep, extension=extension, For_IR=For_IR)
+	FILES, AllSites = data_retrieval(tables, saveLocation, sep=sep, extension=extension, For_IR=For_IR)
 	print("\n\n\t\tCompleted data retrieval and processing\n\t\t\tfrom internal DataMart\n\n")
 	# write out the All sites variable... This includes all sites in the Chemistry, benthic, toxicity, tissue and
 	# habitat datasets.
@@ -638,8 +631,6 @@ if __name__ == "__main__":
 	# FILES["BenthicData"]
 	# FILES["HabitatData"]
 	# use FILES["TableKey"] to subset future datasets, as in example below...
-
-
 
 	############## Subsets of WQ dataset for Cyanotoxins  ###
 	if not For_IR:
@@ -775,7 +766,7 @@ if __name__ == "__main__":
 		URI = os.environ.get('URI')
 		api = DatasetAPI(URI, user, password, debug=False)
 		uploads = {FILES['BenthicData']: 431, FILES['ToxicityData']: 541, FILES['SafeToSwim.csv']: 2186,
-		           FILES['Sites_for_SafeToSwim.csv']: 2181, }
+		           FILES['Sites_for_SafeToSwim.csv']: 2181, FILES['All_CEDEN_Sites']: 2331, }
 		for file in uploads:
 			r = api.attach_file_to_node(file=file, node_id=uploads[file], field='field_upload', update=0)
 			if r.ok:
