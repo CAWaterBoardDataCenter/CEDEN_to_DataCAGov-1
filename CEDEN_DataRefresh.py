@@ -27,7 +27,6 @@ How to use this script:
 Prerequisites:
 	Windows platform (not strictly requirement but I was unable to get this library
 		working on a mac... I tried)
-	on mac
 	Python 3.X
 	pyodbc library for python.  See https://github.com/mkleehammer/pyodbc
 	dkan library for python.    See https://github.com/GetDKAN/pydkan
@@ -479,7 +478,9 @@ def selectByAnalyte(path, fileName, analytes, newFileName, field_filter, sep,
 			AllSites_dw.writeheader()
 			for key, value in Analyte_Sites.items():
 				Sites_writer.writerow([value[0], key, value[1], value[2], value[3]])
-	return newFileName, fileOut, 'Sites_for_' + newFileName, Sites
+		return newFileName, fileOut, 'Sites_for_' + newFileName, Sites
+	else:
+		return newFileName, fileOut, 'Sites_for_' + newFileName
 
 
 				####################################################################################
@@ -617,11 +618,11 @@ if __name__ == "__main__":
 			AllSites_writer = csv.writer(AllSites_csv_file, csv.QUOTE_MINIMAL, delimiter=sep, lineterminator='\n')
 			for key, value in AllSites.items():
 				AllSites_writer.writerow([value[0], key, value[1], value[2], value[3]])
+		FILES['All_CEDEN_Sites'] = AllSites_path
 	totalTime = datetime.now() - startTime
 	seconds = totalTime.seconds
 	minutes = seconds // 60
 	seconds = seconds - minutes * 60
-	FILES['All_CEDEN_Sites'] = AllSites_path
 	print("Data retrieval and processing took %d minutes and %d seconds" % (minutes, seconds))
 	# if For_IR is False, saved datasets are likely:
 	# FILES["WQX_Stations"]
@@ -754,10 +755,10 @@ if __name__ == "__main__":
 				else:
 					column_filter = 'RegionalBoardID'
 				analytes = [str(Region), ]
-				name, location, sitesname, siteslocation = selectByAnalyte(path=path, fileName=fileName, newFileName=newFileName,
+				name, location, sitesname = selectByAnalyte(path=path, fileName=fileName, newFileName=newFileName,
 				                analytes=analytes, field_filter=column_filter, sep=sep, For_IR=True)
 				FILES[name] = location
-				FILES[sitesname] = siteslocation
+				#FILES[sitesname] = siteslocation
 				print('Completed %s' % newFileName)
 	if not For_IR:
 		#### upload dataset to data.ca.gov
