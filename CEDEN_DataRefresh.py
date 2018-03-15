@@ -41,7 +41,6 @@ import re
 from datetime import datetime
 import string
 import getpass
-import os, csv
 from dkan.client import DatasetAPI
 
 
@@ -757,7 +756,7 @@ if __name__ == "__main__":
 				analytes = [str(Region), ]
 				name, location, sitesname = selectByAnalyte(path=path, fileName=fileName, newFileName=newFileName,
 				                analytes=analytes, field_filter=column_filter, sep=sep, For_IR=True)
-				FILES[name] = location
+				#FILES[name] = location
 				#FILES[sitesname] = siteslocation
 				print('Completed %s' % newFileName)
 	if not For_IR:
