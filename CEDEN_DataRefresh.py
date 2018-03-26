@@ -12,11 +12,10 @@ Purpose:
 datasets from an internal SWRCB DataMart of CEDEN data. The original datasets contain
 non-ascii characters and restricted character such as tabs, feedlines, return lines, etc which
 this script removes. This script also applies a data quality estimate to every record.
-This data quality estimate is calculated from a data quality decision tree found here XXXX.
-	In addition, this script subsets the newly created datasets into much smaller and more
-specialized data based on a list of analytes. Eventually this script will also publish each
-dataset to the open data water portal on data.ca.gov although this step is currently non-
-functional and under development.
+The data quality estimate is calculated from a data quality decision tree in development.
+	In addition, this script subsets the newly created datasets into smaller and more
+specialized data based on a list of analytes. This script also publishes each
+dataset to the open data water portal on data.ca.gov.
 
 How to use this script:
 	From a powershell prompt (windows), call python and specify
@@ -30,6 +29,10 @@ Prerequisites:
 	Python 3.X
 	pyodbc library for python.  See https://github.com/mkleehammer/pyodbc
 	dkan library for python.    See https://github.com/GetDKAN/pydkan
+	set appropriate server addresses, usernames, passwords for both the water boards DataMart and
+	Data.ca.gov's account.
+	Please also use the pyodbc's drivers() tool to determine which sql driver is on your machine.
+		ie., "pyodbc.drivers()" in python environment will return list of available sql drivers
 
 '''
 
@@ -78,11 +81,13 @@ def rename_Dict_Column(dictionary, oldName, Newname):
 def remove_Dict_Column(dictionary, removeName):
 	dictionary.pop(removeName)
 
-#The DictionaryFixer creates custom dictionaries for each dataset since not all columns are present or have the same
-# name between datasets. Ex: Water chemistry has a "ProgramName" column while all of the other datasets use "Program"
+#The DictionaryFixer creates custom QA code dictionaries for each dataset since not all columns are present or
+# have the same name between datasets. Ex: Water chemistry has a "ProgramName" column while all of the other datasets use "Program"
 # the Custom dictionary is called Mod_CodeColumns and the ".pop" deletes unwanted keys. If you see a key error,
 # check to see if your dataset has a column with that same name. If it is different, rename using rename_Dict_Column.
-#  If it doesn't exist, use ".pop" to remove it as below.
+#  If it doesn't exist, use remove_Dict_Column() to remove it as below. Use the re.match() function to match multiple
+#  versions of filenames.  For instance BenthicData.csv or BenthicData_prior_to_1999 can both be match with the
+# re.match() function.
 def DictionaryFixer(CodeColumns, filename ):
 	Mod_CodeColumns = CodeColumns.copy()
 	if filename == 'WQX_Stations':
@@ -111,22 +116,22 @@ def DictionaryFixer(CodeColumns, filename ):
 		remove_Dict_Column(Mod_CodeColumns, "QACode")
 		remove_Dict_Column(Mod_CodeColumns, "BatchVerification")
 		remove_Dict_Column(Mod_CodeColumns, "Datum")
-	if filename == 'TissueData':
+	if re.match('TissueData', filename):
 		################# Rename #################
 		rename_Dict_Column(Mod_CodeColumns, oldName="MatrixName", Newname="Matrix")
 		rename_Dict_Column(Mod_CodeColumns, oldName="ResultsReplicate", Newname="ResultReplicate")
 		################################## Delete #################
 		remove_Dict_Column(Mod_CodeColumns, "ResultQualCode")
-	if filename == 'WaterChemistryData':
+	if re.match('WaterChemistry',filename):
 		################# Rename #################
 		rename_Dict_Column(Mod_CodeColumns, oldName="ProgramName", Newname="Program")
-	if filename == 'ToxicityData':
+	if re.match('Toxicity', filename):
 		################# Rename #################
 		rename_Dict_Column(Mod_CodeColumns, oldName="ProgramName", Newname="Program")
 		rename_Dict_Column(Mod_CodeColumns, oldName="BatchVerification", Newname="BatchVerificationCode")
 		################################## Delete #################
 		remove_Dict_Column(Mod_CodeColumns, "ResultsReplicate")
-	if filename == 'HabitatData':
+	if re.match('HabitatData', filename):
 		################# Rename #################
 		rename_Dict_Column(Mod_CodeColumns, oldName="ProgramName", Newname="Program")
 		################################## Delete #################
@@ -246,6 +251,7 @@ def data_retrieval(tables, saveLocation, sep, extension, For_IR):
 		# this is the connection to SWRCB internal DataMart. Server, IUD, PWD are set as environmental variables so
 		# no passwords are in plain text, see "Main" below for importing examples. UID
 		# below create a connection
+		# Please be sure that you have the 'ODBC Driver 11 for SQL Server' driver installed on your machine.
 		cnxn = pyodbc.connect(Driver='ODBC Driver 11 for SQL Server', Server=SERVER1, uid=UID, pwd=PWD)
 		# creates a cursor which will execute the sql statement
 		cursor = cnxn.cursor()
@@ -253,11 +259,28 @@ def data_retrieval(tables, saveLocation, sep, extension, For_IR):
 		print("Couldn't connect to %s. It is down or you might have a typo somewhere. Make sure you've got the "
 		      "right password and Server id. Check internet "
 		      "connection." % SERVER1)
-	# This loop iterates on every item in the tables list.
+	# initialize an AllSites dictionary
 	AllSites = {}
+	# LAt/Long strings in variables
 	Latitude, Longitude = ['Latitude', 'Longitude', ]
+	# commonly used string for filename creation.
+	range_1950 = '_prior_to_1999'
+	range_2000 = '_2000-2009'
+	range_2010 = '_2010-present'
+	# This loop iterates on each item in the tables variable below
 	for count, (filename, table) in enumerate(tables.items()):
+		# creates and addes the full path of the file to be created for the full datasets as
+		# well as the date divided subsets. the filename_xx variables are used as part of the
+		# file writing process
 		writtenFiles[filename] = os.path.join(saveLocation, '%s%s' % (filename, extension))
+		filename_1950 = os.path.join(saveLocation, '%s%s' % (filename + range_1950, extension))
+		filename_2000 = os.path.join(saveLocation, '%s%s' % (filename + range_2000, extension))
+		filename_2010 = os.path.join(saveLocation, '%s%s' % (filename + range_2010, extension))
+		writtenFiles[filename + range_1950] = filename_1950
+		writtenFiles[filename + range_2000] = filename_2000
+		writtenFiles[filename + range_2010] = filename_2010
+		# Sine the WQX file has to be first, we use count == 0 as a way to filter these actions
+		# for the first iteration only. we want to grab the file path for the WQX file
 		if count == 0:
 			WQXfile = writtenFiles[filename]
 		##############################################################################
@@ -273,11 +296,13 @@ def data_retrieval(tables, saveLocation, sep, extension, For_IR):
 		else:
 			sql = "SELECT * FROM %s" % table
 			cursor.execute(sql)
+			# IR tables do not have lat/long renamed
 			if For_IR:
 				columns = [desc[0] for desc in cursor.description]
 				Latitude, Longitude = ['TargetLatitude', 'TargetLongitude', ]
 			else:
 				columns = [desc[0].replace('TargetL', 'L') for desc in cursor.description]
+			# Check to see if datum is in the column headers, add two new column names
 			if 'Datum' in columns:
 				columns += ['DataQuality'] + ['DataQualityIndicator']
 			else:
@@ -294,162 +319,310 @@ def data_retrieval(tables, saveLocation, sep, extension, For_IR):
 			with open(WQXfile, 'r', newline='', encoding='utf8') as WQX_sites_reader:
 				WQX_Sites = {}
 				SitesCounter = 0
+				# we use the csv python module a lot here. It is standard and allows us to
+				# iterate over each line of a file.
 				reader = csv.reader(WQX_sites_reader, delimiter=sep, lineterminator='\n')
+				# we can treat "reader" like a list of every line in a file. That is how
+				# we iterate over the file
 				for row in reader:
+					# if this is the very first line of a file, it should be the headers
+					# Grab the headers and store them to SiteColumns
 					if SitesCounter == 0:
 						Sitecolumns = row
 						SitesCounter += 1
+					# create a dictionary of columns and the current row
+					# this way we can access each row's values by name
+					# we do this a lot in this file
 					SiterowDict = dict(zip(Sitecolumns, row))
+					# create a dictionary of station codes that return the datum value
 					WQX_Sites[SiterowDict['StationCode']] = SiterowDict['Datum']
 		if count == count:  ### Change back to  1 == 1:
+			# this is where we create a reader for each file in the "tables" variable
+			# using the filename iterable
 			with open(writtenFiles[filename], 'w', newline='', encoding='utf8') as csvfile:
+				# we open a file and write the first row with the DictWriter tool
 				dw = csv.DictWriter(csvfile, fieldnames=columns, delimiter=sep, lineterminator='\n')
 				dw.writeheader()
+				# we create a writer object which we will only call towards the very end of the data
+				# quality estimation
 				writer = csv.writer(csvfile, csv.QUOTE_MINIMAL, delimiter=sep, lineterminator='\n')
-				##########################
-				if table == 'DM_WQX_Stations_MV':
-					for row in cursor:
-						row = [str(word) if word is not None else '' for word in row]
-						filtered = [decodeAndStrip(t) for t in list(row)]
-						recordDict = dict(zip(columns, filtered))
-						try:
-							long = float(recordDict[Longitude])
-							if long > 0:
-								recordDict[Longitude] = -long
-						except ValueError:
-							pass
-						writer.writerow(list(recordDict.values()))
-				else:
-					Mod_CodeColumns = DictionaryFixer(CodeColumns, filename)
-					for row in cursor:
-						filtered = [decodeAndStrip(t) if t is not None else '' for t in list(row)]
-						while len(columns) > len(filtered):
-							filtered += ['']
-						recordDict = dict(zip(columns, filtered))
-						try:
-							long = float(recordDict[Longitude])
-							if long > 0:
-								recordDict[Longitude] = -long
-						except ValueError:
-							pass
-						#####  IR and Benthic datasets do not need datum added  #####
-						if For_IR or filename == 'BenthicData':
-							pass
-						else:
-							if recordDict['StationCode'] in WQX_Sites:
-								recordDict['Datum'] = WQX_Sites[recordDict['StationCode']]
+				# here we create and open three additional files where we will write rows if the meet
+				# our logical criteria. Notice that the all have the columns variable and the dates
+				# refer to the general time division we are using. Prior to 1999, 2000-2009, 2010-present
+				with open(filename_1950, 'w', newline='', encoding='utf8') as csv1950:
+					dw1950 = csv.DictWriter(csv1950, fieldnames=columns, delimiter=sep, lineterminator='\n')
+					dw1950.writeheader()
+					writer1950 = csv.writer(csv1950, csv.QUOTE_MINIMAL, delimiter=sep, lineterminator='\n')
+					with open(filename_2000, 'w', newline='', encoding='utf8') as csv2000:
+						dw2000 = csv.DictWriter(csv2000, fieldnames=columns, delimiter=sep, lineterminator='\n')
+						dw2000.writeheader()
+						writer2000 = csv.writer(csv2000, csv.QUOTE_MINIMAL, delimiter=sep, lineterminator='\n')
+						with open(filename_2010, 'w', newline='', encoding='utf8') as csv2010:
+							dw2010 = csv.DictWriter(csv2010, fieldnames=columns, delimiter=sep,
+							                        lineterminator='\n')
+							dw2010.writeheader()
+							writer2010 = csv.writer(csv2010, csv.QUOTE_MINIMAL, delimiter=sep,
+							                        lineterminator='\n')
+							#########################
+							# if the table is the WQX stations table
+							if table == 'DM_WQX_Stations_MV':
+								for row in cursor:
+									# we have to make a distinction between None, 'None', and ''
+									# 'None' and '' are used specifically in the datasets, but
+									# None gets translated to 'None' unless we replace it with
+									# '' explicitly
+									row = [str(word) if word is not None else '' for word in row]
+									# strip all other invalid characters using decodeAndStrip definition
+									filtered = [decodeAndStrip(t) for t in list(row)]
+									# join the column list and the new filtered list
+									# to make a dictionary that we can use througout this script
+									recordDict = dict(zip(columns, filtered))
+									# Sometime the Longitude gets entered as 119 instead of -119...
+									# make sure Longitude value is negative and less than 10000 (could be projected)
+									try:
+										long = float(recordDict[Longitude])
+										if 0. < long < 10000.0 :
+											recordDict[Longitude] = -long
+									except ValueError:
+										pass
+									# write the values of our recordDictionary to the WQX file
+									writer.writerow(list(recordDict.values()))
 							else:
-								recordDict['Datum'] = 'NR'
-						#####  ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^  #####
-						DQ = []
-						for codeCol in list(Mod_CodeColumns):
-							if codeCol == 'QACode':
-								for codeVal in recordDict[codeCol].split(','):
-									if codeVal in list(Mod_CodeColumns[codeCol]):
-										DQ += [Mod_CodeColumns[codeCol][codeVal]]
-							if codeCol == 'StationCode':
-								if bool(re.search('000NONPJ', recordDict[codeCol])):
-									DQ += [0]
-								elif codeVal in list(Mod_CodeColumns[codeCol]):
-									DQ += [Mod_CodeColumns[codeCol][codeVal]]
-							elif codeCol == 'Analyte' or codeCol == 'AnalyteName':
-								if bool(re.search('[Ss]urrogate', recordDict[codeCol])):
-									DQ += [0]
-							elif codeCol == 'ResultQualCode' or codeCol == 'ResQualCode':
-								for codeVal in [recordDict[codeCol]]:
-									if table == 'IR2018_WQ' or table == 'IR2018_Tissue' and codeVal == 'DNQ':
-										yearTest = int(recordDict['SampleDate'][-4:])
-										if isinstance(yearTest, int) and yearTest < 2008:
-											DQ += [6]
-											#add rule identifier so that we seen the quality indicator reflect this rule
-									elif codeVal == 'DNQ' and int(recordDict['SampleDate'][:4]) < 2008:
-										#### add rule identifier so that we seen the quality indicator reflect this rule
-										DQ += [6]
-									elif codeVal == 'ND':
-										# the Benthic dataset does not have a result column
-										# we therefore treat the exception of a ND value
-										# as a passed record.
-										try:
-											RQC = recordDict['Result']
-											if not isinstance(RQC, str) and RQC > 0:
-												DQ += [6]
-											else:
-												DQ += [1]
-										except KeyError:
-											DQ += [1]
-									elif codeVal in list(Mod_CodeColumns[codeCol]):
-										DQ += [Mod_CodeColumns[codeCol][codeVal]]
-							elif codeCol == 'Result':
-								for codeVal in recordDict[codeCol]:
-									if codeVal == '':
-										if 'ResultQualCode' in recordDict.keys():
-											if 'ND' == recordDict['ResultQualCode']:
-												DQ += [1]
-										if 'ResQualCode' in recordDict.keys():
-											if 'ND' == recordDict['ResQualCode']:
-												DQ += [1]
+								# if not WQX filename
+								# create a dictionary of code values specific to the filenames needs
+								# see Dictionary Fixer above
+								Mod_CodeColumns = DictionaryFixer(CodeColumns, filename)
+								for row in cursor:
+									# see None, 'None' and '' above
+									filtered = [decodeAndStrip(t) if t is not None else '' for t in list(row)]
+									# we have to make columns and filtered the same length otherwise python
+									# just uses the shorter of the two. since we want to add a column for
+									# datum, data quality and estimator, but sometimes only 2, we use the while
+									# function to iterate
+									while len(columns) > len(filtered):
+										filtered += ['']
+									# create a dictionary of columns and our current file row!!
+									recordDict = dict(zip(columns, filtered))
+									# make sure Longitude value is negative and less than 10000 (could be projected)
+									try:
+										long = float(recordDict[Longitude])
+										if 0. < long < 10000.0 :
+											recordDict[Longitude] = -long
+									except ValueError:
+										pass
+									#####  IR and Benthic datasets do not need datum added  #####
+									if For_IR or filename == 'BenthicData':
+										pass
+									# Everyone else ...
+									# check to see if the current record's station code is in the variable
+									# WQX_Sites and if it is, then store that datum value to our current record
+									# otherwise store 'NR' not recorded
 									else:
-										if codeVal in list(Mod_CodeColumns[codeCol]):
-											DQ += [Mod_CodeColumns[codeCol][codeVal]]
-							else:
-								for codeVal in [recordDict[codeCol]]:
-									if codeVal in list(Mod_CodeColumns[codeCol]):
-										DQ += [Mod_CodeColumns[codeCol][codeVal]]
-						try:
-							MaxDQ = max(DQ)
-						except ValueError:
-							MaxDQ = 7
-							DQ += [MaxDQ, ]
-						## This marks the beginning of the Quality indicator column value generator
-						QInd = []
-						for codeCol in list(Mod_CodeColumns.keys()):
-							codeValList = []
-							ValuesEqMaxDQ = []
-							if codeCol == 'QACode':
-								codeValList = recordDict[codeCol].split(',')
-							else:
-								codeValList = [recordDict[codeCol], ]
-							for codeVal in codeValList:
-								if codeVal in Mod_CodeColumns[codeCol] and MaxDQ == int(Mod_CodeColumns[codeCol][codeVal]):
-									ValuesEqMaxDQ += [codeVal, ]
-							if not ValuesEqMaxDQ == []:
-								QInd += [codeCol + ':' + ','.join(str(instance) for instance in ValuesEqMaxDQ)]
-						# to remove potential duplicate values generated by the Quality indicator we use the set
-						# structure. We then convert this to a string and store it to the record's DataQuality
-						# Indicator field.
-						# QInd = ' '.join(str(w) for w in set(QInd))
-						if min(DQ) == 0:
-							recordDict['DataQuality'] = DQ_Codes[0]
-						elif max(DQ) == 1:
-							recordDict['DataQuality'] = DQ_Codes[1]
-						else:
-							recordDict['DataQuality'] = DQ_Codes[MaxDQ]
-							if MaxDQ == 6 and QInd == []:
-								recordDict['DataQualityIndicator'] = 'ResultQualCode Special Rules'
-							else:
-								recordDict['DataQualityIndicator'] = '; '.join(str(ColVal) for ColVal in QInd)
-						writer.writerow(list(recordDict.values()))
-						if recordDict['StationCode'] not in AllSites:
-							AllSites[recordDict['StationCode']] = [recordDict['StationName'], recordDict[Latitude],
-							                                    recordDict[Longitude], recordDict['Datum'], ]
-				print("Finished data retrieval for the %s table" % table)
+										if recordDict['StationCode'] in WQX_Sites:
+											recordDict['Datum'] = WQX_Sites[recordDict['StationCode']]
+										else:
+											recordDict['Datum'] = 'NR'
+									#####  ^^^^^^^^^^^^^^^^^^^^^  #####
+									DQ = []
+									############
+									# This is the begining of the data quality estimation
+									# for each list in the modified dictionary of QA codes
+									for codeCol in list(Mod_CodeColumns):
+										# if the list is QACode
+										if codeCol == 'QACode':
+											# for each value in the specific record
+											# split the value up by commas and return a list
+											# ie.  codeVal may be 'QAC,DNR,LOB' which is a string
+											# this would return ['QAC', 'DNR', 'LOB'] which is an iterable list
+											for codeVal in recordDict[codeCol].split(','):
+												# if QAC or DNR or LOB is in the QACode list
+												if codeVal in list(Mod_CodeColumns[codeCol]):
+													# add that numerical value to a temporary variable called "DQ"
+													DQ += [Mod_CodeColumns[codeCol][codeVal]]
+												# For this example record, QAC DNR and LOB would each add a
+												# numerical value to DQ. DQ might be [2, 3, 1]
+												# we continue to use DQ to collect all of the numberical values as we
+												#  iterate through all of the lists in Mod_CodeColumns
+										if codeCol == 'StationCode':
+											# if a record has 000NONPJ or any variants in the StationCode value,
+											# than add 0 to DQ.
+											# elif any values are in the StationCode list, add those values to DQ.
+											if bool(re.search('000NONPJ', recordDict[codeCol])):
+												DQ += [0]
+											elif codeVal in list(Mod_CodeColumns[codeCol]):
+												DQ += [Mod_CodeColumns[codeCol][codeVal]]
+										elif codeCol == 'Analyte' or codeCol == 'AnalyteName':
+											# search for surrogate and mark DQ with a 0
+											if bool(re.search('[Ss]urrogate', recordDict[codeCol])):
+												DQ += [0]
+										elif codeCol == 'ResultQualCode' or codeCol == 'ResQualCode':
+											for codeVal in [recordDict[codeCol]]:
+												# Special Rules
+												# for both IR2018_WQ and IR2018_Tissue, if the ResultQualCode has a
+												# DNQ, then we have to make sure the year is less than 2008 but
+												# dates for these datasets were reported as monthdayyear, so we need
+												# the last 4. If the year is less than 2008, we mark DQ with a reject
+												# number. If it is greater than 2008, we mark it with a pass value
+												if table == 'IR2018_WQ' or table == 'IR2018_Tissue' and codeVal == 'DNQ':
+													yearTest = int(recordDict['SampleDate'][-4:])
+													if isinstance(yearTest, int) and yearTest < 2008:
+														DQ += [6]
+														#add rule identifier so that we seen the quality indicator reflect this rule
+												elif codeVal == 'DNQ' and int(recordDict['SampleDate'][:4]) < 2008:
+													#### add rule identifier so that we seen the quality indicator reflect this rule
+													DQ += [6]
+												elif codeVal == 'ND':
+													# the Benthic dataset can have an ND value as long as the result
+													# is not positive. Record is a pass if less than or equal to zero
+													# reject if result is positive
+													try:
+														RQC = recordDict['Result']
+														if not isinstance(RQC, str) and RQC > 0:
+															DQ += [6]
+														else:
+															DQ += [1]
+													except KeyError:
+														DQ += [1]
+												elif codeVal in list(Mod_CodeColumns[codeCol]):
+													# End of Special Rules for ResultQualCode
+													# check each value an add numerical key to DQ
+													DQ += [Mod_CodeColumns[codeCol][codeVal]]
+										elif codeCol == 'Result':
+											# for the Result we just need to make sure that results can be empty if
+											# ND is the ResultQualCode or ResQualCode
+											# yes they have different names and yes I should have made a more generic
+											#  search for these terms.
+											#
+											for codeVal in recordDict[codeCol]:
+												if codeVal == '':
+													if 'ResultQualCode' in recordDict.keys():
+														if 'ND' == recordDict['ResultQualCode']:
+															DQ += [1]
+													if 'ResQualCode' in recordDict.keys():
+														if 'ND' == recordDict['ResQualCode']:
+															DQ += [1]
+												else:
+													if codeVal in list(Mod_CodeColumns[codeCol]):
+														DQ += [Mod_CodeColumns[codeCol][codeVal]]
+										else:
+											# for all other non Special Rules, check each values in the record column
+											#  to see if its in the dictionary of QA codes. if it is in the
+											# apropriate list, then add the numerical code to DQ
+											for codeVal in [recordDict[codeCol]]:
+												if codeVal in list(Mod_CodeColumns[codeCol]):
+													DQ += [Mod_CodeColumns[codeCol][codeVal]]
+									try:
+										# we get the max value of DQ
+										MaxDQ = max(DQ)
+									except ValueError:
+										# if DQ doesn't have any values, it means that it slipped through the cracks
+										# and is some kind of an error. Check it out
+										MaxDQ = 7
+										DQ += [MaxDQ, ]
+									## This marks the beginning of the Quality indicator column value generator
+									QInd = []
+									# now that we have DQ with all of the numerical codes that can up for that record...
+									for codeCol in list(Mod_CodeColumns.keys()):
+										# make sure codeValList is empty
+										codeValList = []
+										ValuesEqMaxDQ = []
+										# get the record specific values from each QA list and store
+										# them to codeValList
+										if codeCol == 'QACode':
+											codeValList = recordDict[codeCol].split(',')
+										else:
+											codeValList = [recordDict[codeCol], ]
+										# for each code in our new list for this particular record, we check to see
+										# if the corresponding numerical code value is equal to the max value of DQ.
+										# If it is we save the particular code to ValuesEqMaxDQ. IfValuesEqMaxDQ
+										# isn't empty, we save the QA code list name with the offending values to "QInd"
+										for codeVal in codeValList:
+											# This part is tricky.
+											if codeVal in Mod_CodeColumns[codeCol] and MaxDQ == int(Mod_CodeColumns[codeCol][codeVal]):
+												ValuesEqMaxDQ += [codeVal, ]
+										if not ValuesEqMaxDQ == []:
+											QInd += [codeCol + ':' + ','.join(str(instance) for instance in ValuesEqMaxDQ)]
+									# A word about that DQ variable.
+									# DQ might host a long list of numbers but if there is ever a zero, that whole
+									# record should be classified as a QC record. If there isnt a zero and the
+									# maximum value is a 1, then that record passed our data quality estimate
+									# unblemished. If there isn't a zero and the max DQ values is greater than 1,
+									# then ... we get the max value and store the corresponding value (from the
+									# DQ_Codes dictionary, defined above). If the Max DQ is 6 (which is a reject
+									# record) and QInd is empty, then this is a special rule case and we label it as
+									# such. Otherwise, we throw all of the QInd information into the Quality
+									# indicator column. QInd might look like:
+									#   ['ResQualCode:npr,kqed', 'BatchVerificationCode:lol,btw,omg', ]
+									# and the this gets converted and stored into the records new column called Data
+									# Quality indicator a:
+									# 'ResQualCode:npr,kqed; BatchVerificationCode:lol,btw,omg'
+									if min(DQ) == 0:
+										recordDict['DataQuality'] = DQ_Codes[0]
+									elif max(DQ) == 1:
+										recordDict['DataQuality'] = DQ_Codes[1]
+									else:
+										recordDict['DataQuality'] = DQ_Codes[MaxDQ]
+										if MaxDQ == 6 and QInd == []:
+											recordDict['DataQualityIndicator'] = 'ResultQualCode Special Rules'
+										else:
+											recordDict['DataQualityIndicator'] = '; '.join(str(ColVal) for ColVal in QInd)
+									# Now that we have something very special called
+									#
+									###############      recordDict     ##############
+									#
+									# we write its values to each of our open files... millions of times.
+									if not For_IR:
+										recordYear = int(recordDict['SampleDate'][:4])
+										if recordYear < 2000:
+											writer1950.writerow(list(recordDict.values()))
+										elif 1999 < recordYear < 2010:
+											writer2000.writerow(list(recordDict.values()))
+										elif recordYear > 2009:
+											writer2010.writerow(list(recordDict.values()))
+									writer.writerow(list(recordDict.values()))
+									# for each line that we process, all of the sites found in benthic, water chem,
+									# tissue, habitat, WQX, Toxicity we store the Stationname, Lat/Long and datum to
+									# this temporary thing called:
+									#                              AllSites
+									if recordDict['StationCode'] not in AllSites:
+										AllSites[recordDict['StationCode']] = [recordDict['StationName'],
+										                                       recordDict[Latitude], recordDict[Longitude],
+										                                       recordDict['Datum'], ]
+				# these lines remove files that do not have anything but headers
+				# Sometimes we create empty files to hold data but nothing ends up
+				# going into them. So we erase them based on # of bytes which is 2000
+				if os.stat(filename_1950).st_size < 2000:
+					os.remove(filename_1950)
+					writtenFiles.pop(filename + range_1950)
+				if os.stat(filename_2000).st_size < 2000:
+					os.remove(filename_2000)
+					writtenFiles.pop(filename + range_2000)
+				if os.stat(filename_2010).st_size < 2000:
+					os.remove(filename_2010)
+					writtenFiles.pop(filename + range_2010)
+				print("Finished data retrieval for the %s table" % filename)
 	return writtenFiles, AllSites
 
 ####################################################################################
 ############################# Select By Analyte Subset #############################
 ####################################################################################
 
-
+# this is a tool to subset the main CEDEN datasets using the Analyte column ( or whatever column you specify)
 def selectByAnalyte(path, fileName, analytes, newFileName, field_filter, sep,
                     For_IR=False):
+	# we create a variable that store the entire path of the input file
 	file = os.path.join(path, fileName)
+	# we create a variable that store the entire path of the output file
 	fileOut = os.path.join(path, newFileName)
+	# we initialize the Analyte_Sites and columns so we can store stuff in it
 	Analyte_Sites = {}
 	columns = []
+	# the IR tables use TargetLat/Long while we renamed the other tables.
 	if For_IR:
 		Latitude, Longitude = ['TargetLatitude', 'TargetLongitude', ]
 	else:
 		Latitude, Longitude = ['Latitude', 'Longitude', ]
+	# using with open..... again
 	with open(file, 'r', newline='', encoding='utf8') as txtfile:
 		reader = csv.reader(txtfile, delimiter=sep, lineterminator='\n')
 		with open(fileOut, 'w', newline='', encoding='utf8') as txtfileOut:
@@ -463,11 +636,16 @@ def selectByAnalyte(path, fileName, analytes, newFileName, field_filter, sep,
 					count += 1
 					continue
 				rowDict = dict(zip(columns, row))
+				# here is the magic of this whole definition
+				# field_filter is how we extract the current records analyte and see if it is in the
+				# analytes list. If it is in the list then we write the row to fileout.
+				# we also add that row's location information to a Analyte_Sites variable
 				if rowDict[field_filter] in analytes:
 					writer.writerow(row)
 					if rowDict['StationCode'] not in Analyte_Sites:
 						Analyte_Sites[rowDict['StationCode']] = [rowDict['StationName'], rowDict[Latitude],
 						                                         rowDict[Longitude], rowDict['Datum']]
+	# IR tables don't need a sites file
 	if not For_IR:
 		Sites = os.path.join(path, 'Sites_for_' + newFileName)
 		with open(Sites, 'w', newline='', encoding='utf8') as Sites_Out:
@@ -492,9 +670,11 @@ def selectByAnalyte(path, fileName, analytes, newFileName, field_filter, sep,
 ##############################################################################
 
 # Necessary variables imported from user's environmental variables.
+# To protect windows machines from recursive spawning, this script is meant to be run from a command line interface,
+# not in a piecemeal fashion.
 if __name__ == "__main__":
-	# Is this to be run for IR?
-	For_IR = False
+	# Is this to be run for IR Tables?
+	For_IR = True
 	#  This is the filter that every cell in each dataset gets passed through. From the "string" library, we are only
 	# allowing printable characters except pipes, quotes, tabs, returns, control breaks, etc.
 	printable = set(string.printable) - set('|\"\t\r\n\f\v')
@@ -517,6 +697,7 @@ if __name__ == "__main__":
 	# Choose a location to write files locally.
 	### you can change this to point to a different location but it does automatically get your user information.
 	first = 'C:\\Users\\%s\\Documents' % getpass.getuser()
+	# All output files will be saved in this folder
 	saveLocation = os.path.join(first, 'CEDEN_Datasets')
 	if not os.path.isdir(saveLocation):
 		print('\tCreating the CEDEN_DataMart folder for datasets as \n\t\t%s\n' % saveLocation)
@@ -589,8 +770,8 @@ if __name__ == "__main__":
 	tables = {}  # initializes tables variable
 	if not For_IR:
 		tables = {"WQX_Stations": "DM_WQX_Stations_MV", "WaterChemistryData": "WQDMart_MV",
-		          "ToxicityData": "ToxDmart_MV", "TissueData": "TissueDMart_MV", "BenthicData": "BenthicDMart_MV",
-		          "HabitatData": "HabitatDMart_MV", } #  "CyanoToxinData": "CyanotoxinsWQ_MV", }
+		          "ToxicityData": "ToxDmart_MV", "TissueData": "TissueDMart_MV",
+		          "BenthicData": "BenthicDMart_MV", "HabitatData": "HabitatDMart_MV", }
 	if For_IR:
 		# Below is the line to run the IR tables.
 		tables = {"IR_WaterChemistryData": "IR2018_WQ",
@@ -603,8 +784,10 @@ if __name__ == "__main__":
 
 	startTime = datetime.now()
 	# This line runs the functions defined above.
+	# The following line does the majority of this script
 	FILES, AllSites = data_retrieval(tables, saveLocation, sep=sep, extension=extension, For_IR=For_IR)
 	print("\n\n\t\tCompleted data retrieval and processing\n\t\t\tfrom internal DataMart\n\n")
+	print("this is the FILES object: \n", FILES, "\n\n")
 	# write out the All sites variable... This includes all sites in the Chemistry, benthic, toxicity, tissue and
 	# habitat datasets.
 	if not For_IR:
@@ -634,22 +817,6 @@ if __name__ == "__main__":
 
 	############## Subsets of WQ dataset for Cyanotoxins  ###
 	if not For_IR:
-		print("\nStarting data subset for Cyanotoxins....")
-		analytes = ["Anatoxin-A", "Cylindrospermopsin", "Desmethyl-LR", "Desmethyl-RR", "Lyngbyatoxin-a",
-		            "Microcystin-LA", "Microcystin-LF", "Microcystin-LR", "Microcystin-LW", "Microcystin-LY",
-		            "Microcystin-RR", "Microcystins, Total", "Microcystin-YR", "Nodularin", "Saxitoxins", ]
-		WaterChem = FILES["WaterChemistryData"]
-		path, fileName = os.path.split(WaterChem)
-		newFileName = 'CyanoToxins' + extension
-		column_filter = 'DW_AnalyteName'
-		name, location, sitesname, siteslocation = selectByAnalyte(path=path, fileName=fileName,
-		                                                          newFileName=newFileName, analytes=analytes,
-		                field_filter=column_filter, sep=sep)
-		FILES[name] = location
-		FILES[sitesname] = siteslocation
-		print("\t\tFinished writing data subset for CyanoToxins\n\n")
-		############## Subsets of WQ dataset for Cyanotoxins  ###
-
 		############## Subsets of WQ dataset for Safe To Swim  ###
 		print("\nStarting data subset for Safe to Swim...")
 		WaterChem = FILES['WaterChemistryData']
@@ -743,6 +910,8 @@ if __name__ == "__main__":
 		if not os.path.isdir(os.path.join(saveLocation, 'By_RB')):
 			os.mkdir(os.path.join(saveLocation, 'By_RB'))
 		for IR_file in FILES.values():
+			if not os.path.isfile(IR_file):
+				continue
 			for Region in RB:
 				path, fileName = os.path.split(IR_file)
 				file_parts, ext = os.path.splitext(fileName)
@@ -759,22 +928,51 @@ if __name__ == "__main__":
 				#FILES[name] = location
 				#FILES[sitesname] = siteslocation
 				print('Completed %s' % newFileName)
+
+
+	##########################################################################################################
+	##########################################################################################################
+	############### ####       Upload to Data.ca.gov section            ######################################
+	##########################################################################################################
+	##########################################################################################################
+
+
 	if not For_IR:
 		#### upload dataset to data.ca.gov
+		print("Starting to upload files to Data.ca.gov")
 		user = os.environ.get('DCG_user')
 		password = os.environ.get('DCG_pw')
 		URI = os.environ.get('URI')
 		api = DatasetAPI(URI, user, password, debug=False)
-		uploads = {FILES['BenthicData']: 431, FILES['ToxicityData']: 541, FILES['SafeToSwim.csv']: 2186,
-		           FILES['Sites_for_SafeToSwim.csv']: 2181, FILES['All_CEDEN_Sites']: 2331, }
+		# the uploads variable is a dictionary that needs a file path and the Node # from data.ca.gov
+		# The FILES object has the file path information and we use it as a key for the Node # in the for loop below.
+		uploads = {FILES['BenthicData']: 431, FILES['ToxicityData']: 541, FILES['All_CEDEN_Sites']: 2331,
+		           FILES['TissueData_prior_to_1999']: 2366, FILES['TissueData_2000-2009']: 2361,
+		           FILES['TissueData_2010-present']: 2086, FILES['HabitatData_prior_to_1999']: 2376,
+		           FILES['HabitatData_2000-2009']: 2371, FILES['HabitatData_2010-present']: 2036,
+		           FILES['WaterChemistryData_prior_to_1999']: 2386, FILES['SafeToSwim.csv']: 2396,
+		           FILES['Sites_for_SafeToSwim.csv']: 2401, }
+
+		# Troubles shooting lines below
+		#FILES['WaterChemistryData_2000-2009']: 2381, FILES['WaterChemistryData_2010-present']: 2326,
+		#uploads = {'C:\\Users\\AHill\\Documents\\CEDEN_Datasets\\WaterChemistryData_2000-2009.csv': 2381, }
+
+		# Waiting to add these to the automatic uploading above because of uploading size limits:
+		# FILES['WaterChemistryData_2000-2009']: 2381, FILES['WaterChemistryData_2010-present']: 2326,
+		# FILES['SafeToSwim.csv']: 2186, FILES['Sites_for_SafeToSwim.csv']: 2181,
+
 		for file in uploads:
+			print("Starting to upload %s to Data.ca.gov" % os.path.basename(file))
 			r = api.attach_file_to_node(file=file, node_id=uploads[file], field='field_upload', update=0)
 			if r.ok:
 				print("Completed uploading %s to data.ca.gov" % os.path.split(file)[1])
 				r.close()
 				del r
 			else:
-				print("something went wrong. Here is the response error code: %s " % r.status_code)
+				print("something went wrong\n")
+				print("with %s. Here is the response error code: %s " % (os.path.split(file)[1], r.status_code))
+				print("\nAlso, here is the response text")
 				print(r.text)
+				print(r.reason)
 				r.close()
 				del r
