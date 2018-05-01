@@ -75,9 +75,9 @@ if __name__ == "__main__":
 	FHAB = 'FHAB_BloomReport'
 	###   Ideally data.ca.gov will be able to generate data preview for tab delimited txt files... until then
 	### extension type. Data.ca.gov requires csv for preview functionality
-	ext = '.csv'
+	ext = '.tsv'
 	### delimiter type.
-	sep = ','
+	sep = '\t'
 	file = os.path.join(path, FHAB + ext)
 	cnxn = pyodbc.connect(Driver='ODBC Driver 11 for SQL Server', Server=SERVER, uid=UID, Trusted_Connection='Yes')
 	cursor = cnxn.cursor()
@@ -108,7 +108,7 @@ if __name__ == "__main__":
 			except ValueError:
 				pass
 			FHAB_writer.writerow(list(newDict.values()))
-	# 2156 FHAB portal data
-	NODE = 2156
+	# 2446 FHAB portal data (previously 2156)
+	NODE = 2446
 	api = DatasetAPI(URI, user, password, debug=False)
 	r = api.attach_file_to_node(file=file, node_id=NODE, field='field_upload', update=0)
