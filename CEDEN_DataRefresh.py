@@ -821,7 +821,7 @@ if __name__ == "__main__":
 		print("\nStarting data subset for Safe to Swim...")
 		WaterChem = FILES['WaterChemistryData']
 		path, fileName = os.path.split(WaterChem)
-		analytes = ['E. Coli', 'Enterococcus', 'Coliform, Total', 'Coliform, Fecal', ]
+		analytes = ['E. coli', 'Enterococcus', 'Coliform, Total', 'Coliform, Fecal', ]
 		newFileName = 'SafeToSwim' + extension
 		column_filter = 'Analyte'
 		name, location, sitesname, siteslocation = selectByAnalyte(path=path, fileName=fileName, newFileName=newFileName, analytes=analytes,
